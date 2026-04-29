@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -55,6 +55,8 @@ export default function StudentList() {
   const [selectedSection, setSelectedSection] = useState('A');
   const [studentsLoaded, setStudentsLoaded] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [broadcastMessage, setBroadcastMessage] = useState('');
 
   useEffect(() => {
     setSelectedSection(CLASS_TO_SECTION[selectedClass]);
@@ -80,6 +82,20 @@ export default function StudentList() {
   };
 
   const call = (phone: string) => Linking.openURL(`tel:${phone.replace(/\s+/g, '')}`);
+  const closeBroadcastModal = () => {
+    setShowBroadcastModal(false);
+    setBroadcastMessage('');
+  };
+  const applyTemplate = (message: string) => setBroadcastMessage(message);
+  const sendBroadcast = () => {
+    if (!broadcastMessage.trim()) {
+      Alert.alert('Error', 'Please type a message first');
+      return;
+    }
+    setShowBroadcastModal(false);
+    setBroadcastMessage('');
+    Alert.alert('Sent!', `Message sent to all Class ${selectedClass}${selectedSection} parents successfully!`);
+  };
   const getChatId = (index: number) => {
     if (selectedClass === '8' && selectedSection === 'A') return CHAT_IDS_FOR_8A[index] ?? '1';
     return String(index + 1);
@@ -156,11 +172,87 @@ export default function StudentList() {
         <TouchableOpacity
           style={styles.wholeClassBtn}
           activeOpacity={0.9}
-          onPress={() => Alert.alert('Sent', `Message sent to all\nClass ${selectedClass}${selectedSection} parents.`)}
+          onPress={() => setShowBroadcastModal(true)}
         >
           <Text style={styles.wholeClassBtnText}>Send Message to Whole Class</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <Modal
+        visible={showBroadcastModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={closeBroadcastModal}
+      >
+        <View style={styles.broadcastOverlay}>
+          <View style={styles.broadcastSheet}>
+            <Text style={styles.broadcastTitle}>{`Message to Class ${selectedClass}${selectedSection} Parents`}</Text>
+            <Text style={styles.broadcastSubtitle}>{`All Class ${selectedClass}${selectedSection} parents will receive this message`}</Text>
+
+            <View style={styles.recipientPill}>
+              <Text style={styles.recipientPillText}>{`All Class ${selectedClass}${selectedSection} Parents`}</Text>
+            </View>
+
+            <TextInput
+              style={styles.broadcastInput}
+              multiline
+              placeholder={`Type your message to all Class ${selectedClass}${selectedSection} parents...`}
+              placeholderTextColor="#9CA3AF"
+              value={broadcastMessage}
+              onChangeText={setBroadcastMessage}
+              textAlignVertical="top"
+            />
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.templateRow}>
+              <TouchableOpacity
+                style={styles.templatePill}
+                activeOpacity={0.85}
+                onPress={() =>
+                  applyTemplate('Dear Parents, fee payment is due. Please pay at earliest to avoid late charges.')
+                }
+              >
+                <Text style={styles.templatePillText}>Fee Reminder</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.templatePill}
+                activeOpacity={0.85}
+                onPress={() =>
+                  applyTemplate('Dear Parents, Parent Teacher Meeting is scheduled. Please attend to discuss your child progress.')
+                }
+              >
+                <Text style={styles.templatePillText}>PTM Notice</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.templatePill}
+                activeOpacity={0.85}
+                onPress={() =>
+                  applyTemplate('Dear Parents, please ensure your child completes pending homework and submits on time.')
+                }
+              >
+                <Text style={styles.templatePillText}>Homework Alert</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.templatePill}
+                activeOpacity={0.85}
+                onPress={() =>
+                  applyTemplate('Dear Parents, school will remain closed tomorrow. Classes will resume next day.')
+                }
+              >
+                <Text style={styles.templatePillText}>Holiday Notice</Text>
+              </TouchableOpacity>
+            </ScrollView>
+
+            <View style={styles.broadcastBtnRow}>
+              <TouchableOpacity style={styles.cancelBtn} activeOpacity={0.9} onPress={closeBroadcastModal}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.sendAllBtn} activeOpacity={0.9} onPress={sendBroadcast}>
+                <Text style={styles.sendAllBtnText}>Send to All</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -202,4 +294,20 @@ const styles = StyleSheet.create({
 
   wholeClassBtn: { marginTop: 16, height: 52, borderRadius: 50, backgroundColor: '#5CB85C', alignItems: 'center', justifyContent: 'center' },
   wholeClassBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+
+  broadcastOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  broadcastSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
+  broadcastTitle: { fontSize: 18, fontWeight: '800', color: '#1F2937' },
+  broadcastSubtitle: { fontSize: 13, color: '#6B7280', marginTop: 4, marginBottom: 16 },
+  recipientPill: { alignSelf: 'flex-start', backgroundColor: '#EAF3FB', borderRadius: 50, paddingVertical: 6, paddingHorizontal: 14, marginBottom: 16 },
+  recipientPillText: { color: '#4A90D9', fontSize: 13, fontWeight: '700' },
+  broadcastInput: { height: 120, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, padding: 12, fontSize: 14, color: '#1F2937', marginBottom: 16 },
+  templateRow: { gap: 8, marginBottom: 16 },
+  templatePill: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 50, paddingVertical: 6, paddingHorizontal: 12 },
+  templatePillText: { fontSize: 12, color: '#6B7280', fontWeight: '600' },
+  broadcastBtnRow: { flexDirection: 'row', gap: 10 },
+  cancelBtn: { flex: 1, height: 48, borderRadius: 50, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' },
+  cancelBtnText: { color: '#6B7280', fontSize: 14, fontWeight: '700' },
+  sendAllBtn: { flex: 1, height: 48, borderRadius: 50, backgroundColor: '#5CB85C', alignItems: 'center', justifyContent: 'center' },
+  sendAllBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
 });

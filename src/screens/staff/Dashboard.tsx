@@ -18,6 +18,7 @@ type Nav = {
       | 'StaffStudentList'
       | 'StaffMarksEntry'
       | 'StaffTimetable'
+      | 'StaffCalendar'
   ) => void;
 };
 
@@ -313,6 +314,18 @@ export default function StaffDashboard() {
             >
               <Text style={styles.actionIcon}>{ICONS.timetable}</Text>
               <Text style={styles.actionTitle}>My Timetable</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('StaffCalendar')}
+              style={[styles.actionCard, styles.bgGreen]}
+            >
+              <Text style={styles.actionIcon}>📅</Text>
+              <Text style={styles.actionTitle}>Academic Calendar</Text>
+              <Text style={styles.actionSub}>School events</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -617,6 +630,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     color: '#111827',
+    textAlign: 'center',
+  },
+  actionSub: {
+    marginTop: 2,
+    fontSize: 10,
+    color: '#6B7280',
     textAlign: 'center',
   },
   bgBlue: {

@@ -168,8 +168,8 @@ export default function Attendance() {
           </View>
 
           <View style={styles.weekdaysRow}>
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-              <Text key={d} style={styles.weekday}>
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, idx) => (
+              <Text key={`weekday-${idx}-${d}`} style={styles.weekday}>
                 {d}
               </Text>
             ))}
@@ -177,7 +177,14 @@ export default function Attendance() {
 
           <View style={styles.grid}>
             {cells.map((c, idx) => (
-              <View key={`${c.day ?? 'x'}-${idx}`} style={styles.gridCell}>
+              <View
+                key={
+                  c.day == null
+                    ? `empty-start-${monthOffset}-${idx}`
+                    : `date-${monthOffset}-${c.day}`
+                }
+                style={styles.gridCell}
+              >
                 {c.day ? (
                   <View style={[styles.dayCircle, circleStyleFor(c.type)]}>
                     <Text style={styles.dayText}>{c.day}</Text>

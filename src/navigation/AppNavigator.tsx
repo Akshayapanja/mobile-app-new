@@ -50,6 +50,7 @@ import StaffTimetableScreen from '../screens/staff/StaffTimetable';
 import StaffStudentListScreen from '../screens/staff/StudentList';
 import StaffNotificationsScreen from '../screens/staff/StaffNotifications';
 import StaffBroadcastScreen from '../screens/staff/BroadcastMessage';
+import StaffCalendarScreen from '../screens/staff/StaffCalendar';
 
 function AuthStack() {
   return (
@@ -186,6 +187,7 @@ function StaffStack() {
       <Stack.Screen name="StaffAnnouncements" component={AnnouncementsScreen} />
       <Stack.Screen name="StaffAttendance" component={ComingSoon} />
       <Stack.Screen name="StaffHomework" component={StaffHomeworkScreen} />
+      <Stack.Screen name="StaffCalendar" component={StaffCalendarScreen} />
     </Stack.Navigator>
   );
 }

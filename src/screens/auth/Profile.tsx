@@ -37,6 +37,7 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: s
 
 export default function Profile() {
   const navigation = useNavigation<any>();
+  const parentNav = navigation.getParent?.();
   const [user, setUser] = useState<UserShape | null>(null);
   const rootNav = (navigation as any).getParent?.()?.getParent?.() || (navigation as any).getParent?.() || navigation;
 
@@ -95,7 +96,7 @@ export default function Profile() {
             <TouchableOpacity
               activeOpacity={0.9}
               style={styles.teacherProfileCard}
-              onPress={() => navigation.navigate('StaffTeacherProfile')}
+              onPress={() => parentNav?.navigate('StaffTeacherProfile')}
             >
               <Text style={styles.teacherProfileText}>View Full Teacher Profile →</Text>
             </TouchableOpacity>
@@ -104,7 +105,7 @@ export default function Profile() {
               <TouchableOpacity
                 activeOpacity={0.9}
                 style={styles.quickActionCard}
-                onPress={() => navigation.navigate('StaffPayslip')}
+                onPress={() => parentNav?.navigate('StaffPayslip')}
               >
                 <Text style={styles.quickActionEmoji}>💼</Text>
                 <Text style={styles.quickActionText}>My Payslip</Text>
@@ -112,7 +113,7 @@ export default function Profile() {
               <TouchableOpacity
                 activeOpacity={0.9}
                 style={styles.quickActionCard}
-                onPress={() => navigation.navigate('StaffApplyLeave')}
+                onPress={() => parentNav?.navigate('StaffApplyLeave')}
               >
                 <Text style={styles.quickActionEmoji}>📅</Text>
                 <Text style={styles.quickActionText}>Apply Leave</Text>
@@ -122,7 +123,7 @@ export default function Profile() {
             <TouchableOpacity
               activeOpacity={0.9}
               style={styles.timetableCard}
-              onPress={() => navigation.navigate('StaffTimetable')}
+              onPress={() => parentNav?.navigate('StaffTimetable')}
             >
               <View style={styles.timetableLeft}>
                 <Text style={styles.timetableEmoji}>🗓</Text>

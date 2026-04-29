@@ -20,7 +20,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser, login } from '../../lib/session';
 
 type Nav = {
-  navigate: (screen: 'SchoolSelector' | 'RoleSelect') => void;
+  navigate: (screen: any) => void;
+  reset: (state: { index: number; routes: Array<{ name: string }> }) => void;
   goBack: () => void;
 };
 
@@ -117,15 +118,19 @@ export default function OTPVerify() {
         return;
       }
 
-      if (p === '9900000001') {
-        navigation.navigate('RoleSelect');
-        return;
-      }
+      const user = await getUser();
+      const phone = await AsyncStorage.getItem('login_phone');
 
-      const current = await getUser();
-      if (current?.role === 'parent') navigation.navigate('SchoolSelector');
-      else if (current?.role === 'staff') navigation.navigate('SchoolSelector');
-      else navigation.navigate('SchoolSelector');
+      if (phone === '9900000001') {
+        navigation.navigate('RoleSelect' as never);
+      } else if (user?.role === 'staff') {
+        navigation.navigate('SchoolSelector' as never);
+      } else if (user?.role === 'parent') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Parent' }],
+        });
+      }
     } catch {
       Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {

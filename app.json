@@ -1,40 +1,42 @@
 {
   "expo": {
-    "name": "intants-mobile-app",
+    "name": "Intants School ERP",
     "slug": "intants-mobile-app",
     "version": "1.0.0",
+    "description": "School ERP Mobile App for Parents and Staff",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.intants.schoolerp",
+      "icon": "./assets/icon.png"
     },
     "android": {
-      "package": "com.akshayapanja.intantsmobileapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFFFFF"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "package": "com.intants.schoolerp"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     },
-    "plugins": [
-      "expo-font"
-    ],
     "extra": {
       "eas": {
         "projectId": "adad8102-25fd-46f6-9ca8-70372e2330f0"
       }
     },
-    "owner": "akshayapanja"
+    "updates": {
+      "url": "https://u.expo.dev/adad8102-25fd-46f6-9ca8-70372e2330f0",
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": "1.0.0"
   }
 }

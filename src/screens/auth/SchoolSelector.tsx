@@ -1,14 +1,13 @@
 // ✅ Converted from React Web → React Native
 
 import { Ionicons } from '@expo/vector-icons';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Keyboard,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
@@ -17,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser, setSchoolSelected } from '../../lib/session';
 
 type Nav = {
-  dispatch: (action: any) => void;
+  navigate: (screen: any) => void;
   goBack: () => void;
 };
 
@@ -35,28 +34,14 @@ const SCHOOLS: School[] = [
     address: 'Jubilee Hills, Hyderabad, Telangana',
     active: true,
   },
-  {
-    id: 'stmarys_mum',
-    name: "St. Mary's School",
-    address: 'Mumbai, Maharashtra',
-    active: true,
-  },
-  {
-    id: 'kv_blr',
-    name: 'Kendriya Vidyalaya',
-    address: 'Bangalore, Karnataka',
-    active: true,
-  },
 ];
 
 export default function SchoolSelector() {
   const navigation = useNavigation<Nav>();
-  const rootNav = ((navigation as any).getParent?.() as any) || navigation;
 
   const [userName, setUserName] = useState<string>('');
   const [userRole, setUserRole] = useState<'parent' | 'staff' | ''>('');
-  const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string>(SCHOOLS[0]?.id ?? '');
+  const selectedSchool = SCHOOLS[0];
 
   useEffect(() => {
     let mounted = true;
@@ -76,20 +61,6 @@ export default function SchoolSelector() {
     };
   }, [navigation]);
 
-  const filteredSchools = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return SCHOOLS;
-    return SCHOOLS.filter(s => {
-      return s.name.toLowerCase().includes(q) || s.address.toLowerCase().includes(q);
-    });
-  }, [query]);
-
-  useEffect(() => {
-    if (!selectedId) return;
-    const stillVisible = filteredSchools.some(s => s.id === selectedId);
-    if (!stillVisible && filteredSchools[0]) setSelectedId(filteredSchools[0].id);
-  }, [filteredSchools, selectedId]);
-
   const firstName = useMemo(() => {
     const n = userName.trim();
     if (!n) return '';
@@ -97,64 +68,17 @@ export default function SchoolSelector() {
   }, [userName]);
 
   const onContinue = async () => {
-    if (!selectedId) {
-      Alert.alert('Error', 'Please select a school');
-      return;
-    }
     try {
       await setSchoolSelected();
-      const u = await getUser();
-      if (!u) {
-        Alert.alert('Error', 'Please login again.');
-        navigation.goBack();
-        return;
+      const user = await getUser();
+      if (user?.role === 'staff') {
+        navigation.navigate('StaffTabs' as never);
+      } else {
+        navigation.navigate('ParentTabs' as never);
       }
-      rootNav.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: u.role === 'parent' ? 'Parent' : 'Staff' }],
-        })
-      );
     } catch {
       Alert.alert('Error', 'Something went wrong. Please try again.');
     }
-  };
-
-  const renderSchoolCard = (s: School) => {
-    const selected = s.id === selectedId;
-    return (
-      <TouchableOpacity
-        key={s.id}
-        activeOpacity={0.85}
-        onPress={() => setSelectedId(s.id)}
-        style={[styles.cardBase, selected ? styles.cardSelected : styles.cardUnselected]}
-      >
-        <View style={styles.cardLeft}>
-          <View style={styles.schoolIconBox}>
-            <Ionicons name="school" size={18} color="#111827" />
-          </View>
-        </View>
-
-        <View style={styles.cardBody}>
-          <Text style={styles.schoolName}>{s.name}</Text>
-          <Text style={styles.schoolAddress}>{s.address}</Text>
-
-          {s.active && (
-            <View style={styles.activePill}>
-              <Text style={styles.activePillText}>Active</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.cardRight}>
-          {selected ? (
-            <Ionicons name="checkmark-circle" size={22} color="#4A90D9" />
-          ) : (
-            <Ionicons name="ellipse-outline" size={22} color="#D1D5DB" />
-          )}
-        </View>
-      </TouchableOpacity>
-    );
   };
 
   return (
@@ -181,27 +105,31 @@ export default function SchoolSelector() {
           </Text>
           <Text style={styles.welcomeSubtitle}>Choose your school to continue</Text>
 
-          <View style={styles.searchWrap}>
-            <Ionicons name="search" size={18} color="#9CA3AF" style={styles.searchIcon} />
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder="Search school name..."
-              placeholderTextColor="#9CA3AF"
-              style={styles.searchInput}
-              returnKeyType="search"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-
-          <Text style={styles.sectionLabel}>YOUR SCHOOLS</Text>
+          <Text style={styles.sectionLabel}>YOUR SCHOOL</Text>
 
           <View style={styles.list}>
-            {filteredSchools.map(renderSchoolCard)}
-            {filteredSchools.length === 0 && (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No schools found</Text>
+            {selectedSchool && (
+              <View style={[styles.cardBase, styles.cardSelected]}>
+                <View style={styles.cardLeft}>
+                  <View style={styles.schoolIconBox}>
+                    <Ionicons name="school" size={18} color="#111827" />
+                  </View>
+                </View>
+
+                <View style={styles.cardBody}>
+                  <Text style={styles.schoolName}>{selectedSchool.name}</Text>
+                  <Text style={styles.schoolAddress}>{selectedSchool.address}</Text>
+
+                  {selectedSchool.active && (
+                    <View style={styles.activePill}>
+                      <Text style={styles.activePillText}>Active</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.cardRight}>
+                  <Ionicons name="checkmark-circle" size={22} color="#4A90D9" />
+                </View>
               </View>
             )}
           </View>
@@ -267,26 +195,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginBottom: 14,
   },
-  searchWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    height: 46,
-    marginBottom: 16,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: '#111827',
-    paddingVertical: 0,
-  },
   sectionLabel: {
     fontSize: 12,
     fontWeight: '800',
@@ -307,11 +215,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#4A90D9',
     backgroundColor: '#EAF3FB',
-  },
-  cardUnselected: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
   },
   cardLeft: {
     marginRight: 12,
@@ -356,18 +259,6 @@ const styles = StyleSheet.create({
   },
   cardRight: {
     marginLeft: 10,
-  },
-  emptyState: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 16,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  emptyText: {
-    fontSize: 13,
-    color: '#6B7280',
-    textAlign: 'center',
   },
   flexSpacer: {
     flex: 1,

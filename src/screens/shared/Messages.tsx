@@ -134,10 +134,13 @@ const STAFF_CONTACTS: Contact[] = [
 
 export default function Messages() {
   const navigation = useNavigation<any>();
+  const parentNav = navigation.getParent?.();
   const [role, setRole] = useState<Role>('parent');
   const [q, setQ] = useState('');
   const [composeOpen, setComposeOpen] = useState(false);
   const [contactQ, setContactQ] = useState('');
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [broadcastMessage, setBroadcastMessage] = useState('');
 
   useEffect(() => {
     let alive = true;
@@ -164,8 +167,8 @@ export default function Messages() {
   );
 
   const openChat = (chatId: string) => {
-    if (role === 'parent') navigation.navigate('ParentChat', { chatId });
-    else navigation.navigate('StaffChat', { chatId });
+    if (role === 'parent') parentNav?.navigate('ParentChat', { chatId });
+    else parentNav?.navigate('StaffChat', { chatId });
   };
 
   return (
@@ -261,7 +264,10 @@ export default function Messages() {
                   onPress={() => {
                     setComposeOpen(false);
                     if (c.broadcast) {
-                      Alert.alert('Sent', 'Message sent to all Class 8A parents!');
+                      setBroadcastMessage('');
+                      setTimeout(() => {
+                        setShowBroadcastModal(true);
+                      }, 300);
                       return;
                     }
                     openChat(c.id);
@@ -282,6 +288,109 @@ export default function Messages() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showBroadcastModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowBroadcastModal(false)}
+      >
+        <View style={styles.broadcastOverlay}>
+          <View style={styles.broadcastSheet}>
+            <Text style={styles.broadcastTitle}>Message to Class 8A Parents</Text>
+            <Text style={styles.broadcastSubtitle}>All 32 parents will receive this message</Text>
+
+            <View style={styles.recipientPill}>
+              <Text style={styles.recipientPillText}>All Class 8A Parents (32)</Text>
+            </View>
+
+            <TextInput
+              style={styles.broadcastInput}
+              multiline
+              placeholder="Type your message to all Class 8A parents..."
+              placeholderTextColor="#9CA3AF"
+              value={broadcastMessage}
+              onChangeText={setBroadcastMessage}
+              textAlignVertical="top"
+            />
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.templateRow}>
+              <TouchableOpacity
+                style={styles.templatePill}
+                activeOpacity={0.85}
+                onPress={() =>
+                  setBroadcastMessage(
+                    'Dear Parents, fee payment is due. Please pay at earliest to avoid late charges.',
+                  )
+                }
+              >
+                <Text style={styles.templatePillText}>Fee Reminder</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.templatePill}
+                activeOpacity={0.85}
+                onPress={() =>
+                  setBroadcastMessage(
+                    'Dear Parents, PTM is scheduled. Please attend to discuss your child progress.',
+                  )
+                }
+              >
+                <Text style={styles.templatePillText}>PTM Notice</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.templatePill}
+                activeOpacity={0.85}
+                onPress={() =>
+                  setBroadcastMessage(
+                    'Dear Parents, please ensure child completes pending homework on time.',
+                  )
+                }
+              >
+                <Text style={styles.templatePillText}>Homework Alert</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.templatePill}
+                activeOpacity={0.85}
+                onPress={() =>
+                  setBroadcastMessage(
+                    'Dear Parents, school will remain closed tomorrow. Classes resume next day.',
+                  )
+                }
+              >
+                <Text style={styles.templatePillText}>Holiday Notice</Text>
+              </TouchableOpacity>
+            </ScrollView>
+
+            <View style={styles.broadcastBtnRow}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                activeOpacity={0.9}
+                onPress={() => {
+                  setShowBroadcastModal(false);
+                  setBroadcastMessage('');
+                }}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.sendAllBtn}
+                activeOpacity={0.9}
+                onPress={() => {
+                  if (!broadcastMessage.trim()) {
+                    Alert.alert('Error', 'Please type a message first');
+                    return;
+                  }
+                  setShowBroadcastModal(false);
+                  setBroadcastMessage('');
+                  Alert.alert('Sent!', 'Message sent to all 32 Class 8A parents!');
+                }}
+              >
+                <Text style={styles.sendAllBtnText}>Send to All</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -338,4 +447,20 @@ const styles = StyleSheet.create({
   contactRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   contactName: { fontSize: 14, fontWeight: '700', color: '#111827' },
   contactSubtitle: { fontSize: 12, color: '#6B7280', marginTop: 2, fontWeight: '600' },
+
+  broadcastOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  broadcastSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
+  broadcastTitle: { fontSize: 18, fontWeight: '800', color: '#1F2937' },
+  broadcastSubtitle: { fontSize: 13, color: '#6B7280', marginTop: 4, marginBottom: 16 },
+  recipientPill: { alignSelf: 'flex-start', backgroundColor: '#EAF3FB', borderRadius: 50, paddingVertical: 6, paddingHorizontal: 14, marginBottom: 16 },
+  recipientPillText: { color: '#4A90D9', fontSize: 13, fontWeight: '700' },
+  broadcastInput: { height: 120, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, padding: 12, fontSize: 14, color: '#1F2937', marginBottom: 16 },
+  templateRow: { gap: 8, marginBottom: 16 },
+  templatePill: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 50, paddingVertical: 6, paddingHorizontal: 12 },
+  templatePillText: { fontSize: 12, color: '#6B7280', fontWeight: '600' },
+  broadcastBtnRow: { flexDirection: 'row', gap: 10 },
+  cancelBtn: { flex: 1, height: 48, borderRadius: 50, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' },
+  cancelBtnText: { color: '#6B7280', fontSize: 14, fontWeight: '700' },
+  sendAllBtn: { flex: 1, height: 48, borderRadius: 50, backgroundColor: '#5CB85C', alignItems: 'center', justifyContent: 'center' },
+  sendAllBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
 });

@@ -23,6 +23,7 @@ type Nav = {
     ,
     params?: any
   ) => void;
+  getParent?: () => any;
 };
 
 type ChildCard = {
@@ -38,7 +39,7 @@ type Accent = 'blue' | 'amber';
 
 export default function ParentDashboard() {
   const navigation = useNavigation<Nav>();
-  const parentNav = (navigation as any).getParent?.();
+  const parentNav = navigation.getParent?.();
 
   const [parentName, setParentName] = useState('');
   const [parentPhone, setParentPhone] = useState('');
@@ -139,7 +140,7 @@ export default function ParentDashboard() {
 
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('ParentNotifications')}
+            onPress={() => parentNav?.navigate('ParentNotifications')}
             style={styles.bellBtn}
             accessibilityRole="button"
             accessibilityLabel="Notifications"
@@ -151,7 +152,7 @@ export default function ParentDashboard() {
 
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>My Children</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('ParentChildren')} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => navigation.navigate('Children' as never)} activeOpacity={0.7}>
             <Text style={styles.seeAll}>See All →</Text>
           </TouchableOpacity>
         </View>
@@ -162,7 +163,7 @@ export default function ParentDashboard() {
               key={c.id}
               activeOpacity={0.85}
               onPress={() =>
-                (parentNav || navigation).navigate('ParentChildProfile', {
+                parentNav?.navigate('ParentChildProfile', {
                   // Always: first child -> '1', second child -> '2'
                   childId: idx === 0 ? '1' : '2',
                 })
@@ -209,9 +210,9 @@ export default function ParentDashboard() {
 
         <View style={styles.actionsGrid}>
           <View style={styles.actionRow}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('ParentFees')}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => parentNav?.navigate('ParentFees')}
               style={[styles.actionCard, styles.actionBlue]}
             >
               <Text style={styles.actionEmoji}>💰</Text>
@@ -219,9 +220,9 @@ export default function ParentDashboard() {
               <Text style={styles.actionSub}>₹4,500 due</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('ParentApplyLeave')}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => parentNav?.navigate('ParentApplyLeave')}
               style={[styles.actionCard, styles.actionGreen]}
             >
               <Text style={styles.actionEmoji}>📅</Text>
@@ -241,9 +242,9 @@ export default function ParentDashboard() {
           </View>
 
           <View style={styles.actionRow}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('ParentFaculty')}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => parentNav?.navigate('ParentFaculty')}
               style={[styles.actionCard, styles.actionGreen, styles.actionWide]}
             >
               <Text style={styles.actionEmoji}>👨‍🏫</Text>
@@ -251,9 +252,9 @@ export default function ParentDashboard() {
               <Text style={styles.actionSub}>View teachers</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('ParentBusTracking')}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => parentNav?.navigate('ParentBusTracking')}
               style={[styles.actionCard, styles.actionBlue, styles.actionWide]}
             >
               <Text style={styles.actionEmoji}>🚌</Text>
@@ -265,7 +266,7 @@ export default function ParentDashboard() {
 
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Announcements</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('ParentAnnouncements')} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => parentNav?.navigate('ParentAnnouncements')} activeOpacity={0.7}>
             <Text style={styles.seeAll}>See All →</Text>
           </TouchableOpacity>
         </View>
@@ -275,7 +276,7 @@ export default function ParentDashboard() {
             <TouchableOpacity
               key={a.id}
               activeOpacity={0.85}
-              onPress={() => navigation.navigate('ParentAnnouncements')}
+              onPress={() => parentNav?.navigate('ParentAnnouncements')}
               style={styles.infoCard}
             >
               <View style={[styles.accentBar, a.accent === 'amber' ? styles.accentAmber : styles.accentBlue]} />
@@ -292,7 +293,7 @@ export default function ParentDashboard() {
 
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Academic Calendar</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('ParentCalendar')} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => parentNav?.navigate('ParentCalendar')} activeOpacity={0.7}>
             <Text style={styles.seeAll}>See All →</Text>
           </TouchableOpacity>
         </View>
@@ -302,7 +303,7 @@ export default function ParentDashboard() {
             <TouchableOpacity
               key={e.id}
               activeOpacity={0.85}
-              onPress={() => navigation.navigate('ParentCalendar')}
+              onPress={() => parentNav?.navigate('ParentCalendar')}
               style={styles.infoCard}
             >
               <View style={[styles.accentBar, e.accent === 'amber' ? styles.accentAmber : styles.accentBlue]} />

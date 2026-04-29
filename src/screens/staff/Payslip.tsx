@@ -31,7 +31,7 @@ export default function Payslip() {
   const totalDeductions = deductions.reduce((a, b) => a + b.amount, 0);
   const netPay = totalEarnings - totalDeductions;
 
-  const amount = (n: number) => `?${n.toLocaleString('en-IN')}`;
+  const amount = (n: number) => `\u20B9${n.toLocaleString('en-IN')}`;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -45,9 +45,13 @@ export default function Payslip() {
         </View>
 
         <View style={styles.monthRow}>
-          <TouchableOpacity style={styles.monthArrowBtn} onPress={() => setMonthOffset(v => v - 1)} activeOpacity={0.85}><Text style={styles.monthArrow}>?</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.monthArrowBtn} onPress={() => setMonthOffset(v => v - 1)} activeOpacity={0.85}>
+            <Ionicons name="chevron-back" size={20} color="#1F2937" />
+          </TouchableOpacity>
           <Text style={styles.monthText}>{monthText}</Text>
-          <TouchableOpacity style={styles.monthArrowBtn} onPress={() => setMonthOffset(v => v + 1)} activeOpacity={0.85}><Text style={styles.monthArrow}>?</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.monthArrowBtn} onPress={() => setMonthOffset(v => v + 1)} activeOpacity={0.85}>
+            <Ionicons name="chevron-forward" size={20} color="#1F2937" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.staffInfoCard}>
@@ -83,7 +87,7 @@ export default function Payslip() {
         </View>
 
         <TouchableOpacity style={styles.downloadBtn} activeOpacity={0.9} onPress={() => Alert.alert('Downloaded', `Payslip for ${monthText} downloaded!`)}>
-          <Text style={styles.downloadText}>? Download Payslip</Text>
+          <Text style={styles.downloadText}>Download Payslip</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

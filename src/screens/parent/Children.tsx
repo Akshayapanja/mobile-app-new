@@ -48,9 +48,23 @@ const CHILDREN_BY_PHONE: Record<string, Array<Omit<Child, 'id'> & { id: string }
 
 export default function Children() {
   const navigation = useNavigation<any>();
-  const parentNav = (navigation as any).getParent?.();
   const [loading, setLoading] = useState(true);
   const [kids, setKids] = useState<ChildCard[]>([]);
+  const navigateToParentScreen = (screenName: string, params?: any) => {
+    let navRef: any = navigation;
+    while (navRef) {
+      const routeNames: string[] = navRef.getState?.()?.routeNames || [];
+      if (routeNames.includes(screenName)) {
+        navRef.navigate(screenName as never, params as never);
+        return;
+      }
+      navRef = navRef.getParent?.();
+    }
+  };
+
+  const handleViewProfile = (childId: string) => {
+    navigateToParentScreen('ParentChildProfile', { childId });
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -95,7 +109,7 @@ export default function Children() {
           <Text style={styles.headerTitle}>My Children</Text>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('ParentNotifications')}
+            onPress={() => navigateToParentScreen('ParentNotifications')}
             activeOpacity={0.85}
             style={styles.bellButton}
           >
@@ -112,7 +126,7 @@ export default function Children() {
               key={child.id}
               activeOpacity={0.9}
               style={styles.card}
-              onPress={() => (parentNav || navigation).navigate('ParentChildProfile', { childId: child.navChildId })}
+              onPress={() => handleViewProfile(child.navChildId)}
             >
               <View style={styles.cardTopRow}>
                 <View style={[styles.avatar, { backgroundColor: child.avatarBg }]}>
@@ -155,7 +169,7 @@ export default function Children() {
                 </View>
 
                 <TouchableOpacity
-                  onPress={() => (parentNav || navigation).navigate('ParentChildProfile', { childId: child.navChildId })}
+                  onPress={() => handleViewProfile(child.navChildId)}
                   activeOpacity={0.85}
                 >
                   <Text style={styles.viewProfileText}>View Full Profile →</Text>
