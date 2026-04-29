@@ -47,6 +47,119 @@ export const CHILDREN: Record<string, Child> = {
   '2': { id: 'c2', name: 'Sneha Sharma', initials: 'SS', class: '5', section: 'B', rollNo: '11', regNo: 'DPS2024-B11', attendance: 92, rank: '3rd', homeworkDone: '9/10', avatarBg: '#FFF3E0', avatarColor: '#F5A623' },
 };
 
+/** Names used to synthesize class lists for sections B/C/D when no explicit list exists. */
+export const MOCK_STUDENT_NAME_POOL: readonly string[] = [
+  'Aarav Sharma',
+  'Priya Patel',
+  'Rohit Kumar',
+  'Ananya Singh',
+  'Karthik Reddy',
+  'Sneha Nair',
+  'Arjun Mehta',
+  'Divya Iyer',
+  'Meena Pillai',
+  'Suresh Sharma',
+  'Lakshmi Nair',
+  'Arun Kumar',
+  'Preethi Reddy',
+  'Vishal Singh',
+  'Kavitha Das',
+  'Rajesh Verma',
+  'Pranav Rao',
+  'Swathi Reddy',
+  'Harish Patel',
+  'Nisha Kumar',
+  'Ravi Teja',
+  'Deepika Singh',
+  'Ajay Nair',
+  'Rekha Sharma',
+  'Mohan Das',
+  'Sunita Verma',
+  'Vijay Mehta',
+  'Geeta Iyer',
+  'Ramesh Patel',
+  'Sonia Gupta',
+  'Kiran Rao',
+  'Vikram Das',
+];
+
+const ATTENDANCE_EXPLICIT: Record<string, Array<{ roll: string; name: string }>> = {
+  '6-A': [
+    { roll: '01', name: 'Aarav Sharma' },
+    { roll: '02', name: 'Priya Patel' },
+    { roll: '03', name: 'Rohit Kumar' },
+    { roll: '04', name: 'Ananya Singh' },
+    { roll: '05', name: 'Karthik Reddy' },
+    { roll: '06', name: 'Sneha Nair' },
+    { roll: '07', name: 'Arjun Mehta' },
+    { roll: '08', name: 'Divya Iyer' },
+  ],
+  '6-B': [
+    { roll: '01', name: 'Vikram Das' },
+    { roll: '02', name: 'Pooja Gupta' },
+    { roll: '03', name: 'Rahul Verma' },
+    { roll: '04', name: 'Meera Pillai' },
+    { roll: '05', name: 'Aditya Joshi' },
+    { roll: '06', name: 'Kavya Menon' },
+    { roll: '07', name: 'Suresh Babu' },
+    { roll: '08', name: 'Lakshmi Devi' },
+  ],
+  '7-A': [
+    { roll: '01', name: 'Meena Pillai' },
+    { roll: '02', name: 'Suresh Sharma' },
+    { roll: '03', name: 'Lakshmi Nair' },
+    { roll: '04', name: 'Arun Kumar' },
+    { roll: '05', name: 'Preethi Reddy' },
+    { roll: '06', name: 'Vishal Singh' },
+    { roll: '07', name: 'Kavitha Das' },
+    { roll: '08', name: 'Rajesh Verma' },
+  ],
+  '8-A': [
+    { roll: '01', name: 'Pranav Rao' },
+    { roll: '02', name: 'Swathi Reddy' },
+    { roll: '03', name: 'Harish Patel' },
+    { roll: '04', name: 'Nisha Kumar' },
+    { roll: '05', name: 'Ravi Teja' },
+    { roll: '06', name: 'Deepika Singh' },
+    { roll: '07', name: 'Ajay Nair' },
+    { roll: '08', name: 'Rekha Sharma' },
+  ],
+  '9-A': [
+    { roll: '01', name: 'Rekha Sharma' },
+    { roll: '02', name: 'Mohan Das' },
+    { roll: '03', name: 'Sunita Verma' },
+    { roll: '04', name: 'Vijay Mehta' },
+    { roll: '05', name: 'Geeta Iyer' },
+    { roll: '06', name: 'Ramesh Patel' },
+    { roll: '07', name: 'Sonia Gupta' },
+    { roll: '08', name: 'Kiran Rao' },
+  ],
+  '10-A': [
+    { roll: '01', name: 'Lakshmi Devi' },
+    { roll: '02', name: 'Pranav Rao' },
+    { roll: '03', name: 'Swathi Reddy' },
+    { roll: '04', name: 'Harish Patel' },
+    { roll: '05', name: 'Nisha Kumar' },
+    { roll: '06', name: 'Ravi Teja' },
+    { roll: '07', name: 'Deepika Singh' },
+    { roll: '08', name: 'Ajay Nair' },
+  ],
+};
+
+export function getAttendanceStudentsForClassSection(cls: string, sec: string): Array<{ roll: string; name: string }> {
+  const key = `${cls}-${sec}`;
+  const explicit = ATTENDANCE_EXPLICIT[key];
+  if (explicit) return explicit.map(r => ({ ...r }));
+
+  const n = MOCK_STUDENT_NAME_POOL.length;
+  const offset =
+    (Math.max(0, parseInt(cls, 10) || 0) * 17 + sec.charCodeAt(0) * 11 + (sec.charCodeAt(0) % 7)) % n;
+  return Array.from({ length: 8 }, (_, i) => ({
+    roll: String(i + 1).padStart(2, '0'),
+    name: MOCK_STUDENT_NAME_POOL[(offset + i) % n],
+  }));
+}
+
 export const STUDENTS_8A = [
   { roll: '01', name: 'Aarav Sharma', status: 'P' },
   { roll: '02', name: 'Priya Patel', status: 'P' },

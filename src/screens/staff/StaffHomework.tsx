@@ -1,92 +1,358 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { AppShell, ProgressBar } from '@/components/AppShell';
-import { Plus } from 'lucide-react';
-import { getSentHomework } from '@/lib/session';
-import { useEffect, useState } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getSentHomework, SentHomework } from '../../lib/session';
 
-const BASE = [
-  { id: 'b1', subject: 'Mathematics', cls: '8', sec: 'A', due: 'Apr 15', title: 'Solve Exercise 5.3 Quadratic Equations', subm: 18, total: 32, color: '#4A90D9', bg: '#EAF3FB' },
-  { id: 'b2', subject: 'Science', cls: '9', sec: 'B', due: 'Apr 18', title: 'Draw and label the digestive system', subm: 24, total: 35, color: '#5CB85C', bg: '#F0FDF4' },
-  { id: 'b3', subject: 'English', cls: '7', sec: 'C', due: 'Apr 10', title: 'Write essay on Climate Change', subm: 31, total: 31, color: '#F5A623', bg: '#FFF8E7' },
+type HwCard = {
+  id: string;
+  subject: string;
+  cls: string;
+  sec: string;
+  due: string;
+  title: string;
+  subm: number;
+  total: number;
+  color: string;
+  bg: string;
+};
+
+const BASE: HwCard[] = [
+  {
+    id: 'b1',
+    subject: 'Mathematics',
+    cls: '8',
+    sec: 'A',
+    due: 'Apr 15',
+    title: 'Solve Exercise 5.3 Quadratic Equations',
+    subm: 18,
+    total: 32,
+    color: '#4A90D9',
+    bg: '#EAF3FB',
+  },
+  {
+    id: 'b2',
+    subject: 'Mathematics',
+    cls: '8',
+    sec: 'A',
+    due: 'Apr 18',
+    title: 'Draw and label coordinate geometry diagram',
+    subm: 24,
+    total: 32,
+    color: '#4A90D9',
+    bg: '#EAF3FB',
+  },
+  {
+    id: 'b3',
+    subject: 'Mathematics',
+    cls: '8',
+    sec: 'A',
+    due: 'Apr 10',
+    title: 'Complete Chapter 4 exercises',
+    subm: 32,
+    total: 32,
+    color: '#4A90D9',
+    bg: '#EAF3FB',
+  },
+  {
+    id: 'b4',
+    subject: 'Mathematics',
+    cls: '9',
+    sec: 'B',
+    due: 'Apr 16',
+    title: 'Quadratic equations practice problems',
+    subm: 29,
+    total: 35,
+    color: '#4A90D9',
+    bg: '#EAF3FB',
+  },
+  {
+    id: 'b5',
+    subject: 'Mathematics',
+    cls: '9',
+    sec: 'B',
+    due: 'Apr 20',
+    title: 'Trigonometry chapter exercise set',
+    subm: 21,
+    total: 35,
+    color: '#4A90D9',
+    bg: '#EAF3FB',
+  },
+  {
+    id: 'b6',
+    subject: 'Mathematics',
+    cls: '7',
+    sec: 'C',
+    due: 'Apr 18',
+    title: 'Algebra problems Exercise 3.2',
+    subm: 28,
+    total: 30,
+    color: '#4A90D9',
+    bg: '#EAF3FB',
+  },
+  {
+    id: 'b7',
+    subject: 'Mathematics',
+    cls: '7',
+    sec: 'C',
+    due: 'Apr 10',
+    title: 'Essay on Environment',
+    subm: 30,
+    total: 30,
+    color: '#4A90D9',
+    bg: '#EAF3FB',
+  },
 ];
 
-export default function StaffHomework() {
-  const nav = useNavigate();
-  const sent = getSentHomework();
-  const [cls, setCls] = useState('All');
-  const [sec, setSec] = useState('All');
-  const [loading, setLoading] = useState(true);
+const CLASSES = ['8', '9', '7'] as const;
+const CLASS_TO_SECTION: Record<string, string> = { '8': 'A', '9': 'B', '7': 'C' };
 
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(t);
-  }, []);
-
+function ProgressBarRow({ value, color }: { value: number; color: string }) {
+  const pct = Math.max(0, Math.min(100, value));
   return (
-    <AppShell role="staff">
-      <div className="px-5 pt-5">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-[20px] font-bold text-foreground">Homework</h1>
-          <button onClick={() => nav('/staff/create-homework')} className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center"><Plus size={20} /></button>
-        </div>
-
-        {loading ? (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <Skeleton className="h-12 w-full rounded-lg bg-[#F3F4F6]" />
-              <Skeleton className="h-12 w-full rounded-lg bg-[#F3F4F6]" />
-            </div>
-            <div className="space-y-3">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-[110px] w-full rounded-xl bg-[#F3F4F6]" />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <select value={cls} onChange={e => setCls(e.target.value)} className="input-field"><option>All</option>{['6','7','8','9','10'].map(c=><option key={c}>Class {c}</option>)}</select>
-              <select value={sec} onChange={e => setSec(e.target.value)} className="input-field"><option>All</option>{['A','B','C'].map(s=><option key={s}>Section {s}</option>)}</select>
-            </div>
-
-            <div className="space-y-3">
-              {sent.map(s => (
-                <div key={s.id} className="card-base p-3.5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="pill bg-secondary text-primary">{s.subject}</span>
-                    <span className="pill bg-secondary text-primary">🤖 AI Generated</span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">Class {s.class} - {s.section} · Sent {new Date(s.sentAt).toLocaleDateString()}</p>
-                  <p className="text-[14px] font-medium text-foreground mt-1.5">{s.title}</p>
-                  <div className="mt-2.5 mb-1 flex justify-between text-[11px]"><span className="text-muted-foreground">0/30 submitted</span><span className="text-primary font-medium">Just sent</span></div>
-                  <ProgressBar value={5} color="#4A90D9" />
-                </div>
-              ))}
-              {BASE.map(h => (
-                <Link to="/staff/submissions" key={h.id} className="card-base p-3.5 block">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="pill" style={{ background: h.bg, color: h.color }}>{h.subject}</span>
-                    <span className="text-[11px] text-muted-foreground">Due: {h.due}</span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">Class {h.cls} - {h.sec}</p>
-                  <p className="text-[14px] font-medium text-foreground mt-1.5">{h.title}</p>
-                  <div className="mt-2.5 mb-1 flex justify-between text-[11px]">
-                    <span className={h.subm === h.total ? 'text-success font-medium' : 'text-muted-foreground'}>{h.subm}/{h.total} submitted</span>
-                    <span className="text-primary">View →</span>
-                  </div>
-                  <ProgressBar value={(h.subm / h.total) * 100} color={h.subm === h.total ? '#5CB85C' : '#4A90D9'} />
-                  <div className="flex gap-3 mt-2.5 pt-2.5 border-t border-border text-[11px]">
-                    <button className="text-primary font-medium">View Submissions</button>
-                    <button className="text-muted-foreground">Edit</button>
-                    <button className="text-destructive">Delete</button>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    </AppShell>
+    <View style={styles.progressOuter}>
+      <View style={[styles.progressInner, { width: `${pct}%`, backgroundColor: color }]} />
+    </View>
   );
 }
+
+export default function StaffHomework() {
+  const navigation = useNavigation<any>();
+  const [cls, setCls] = useState('8');
+  const [sec, setSec] = useState('A');
+  const [sent, setSent] = useState<SentHomework[]>([]);
+
+  useEffect(() => {
+    setSec(CLASS_TO_SECTION[cls]);
+  }, [cls]);
+
+  useEffect(() => {
+    let alive = true;
+    getSentHomework().then(list => {
+      if (alive) setSent(list);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const openClassPicker = useCallback(() => {
+    Alert.alert('Class', 'Choose class', [
+      ...CLASSES.map(c => ({ text: `Class ${c}`, onPress: () => setCls(c) })),
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  }, []);
+
+  const filteredBase = useMemo(
+    () => BASE.filter(h => h.cls === cls && h.sec === sec),
+    [cls, sec]
+  );
+
+  const filteredSent = useMemo(
+    () => sent.filter(s => s.class === cls && s.section === sec),
+    [sent, cls, sec]
+  );
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.topNav}>
+          <View style={styles.topNavSpacer} />
+          <Text style={styles.topNavTitle}>Homework</Text>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('StaffCreateHomework')}
+            style={styles.addBtn}
+          >
+            <Ionicons name="add" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.filterRow}>
+          <TouchableOpacity activeOpacity={0.9} style={styles.dropdown} onPress={openClassPicker}>
+            <Text style={styles.dropdownValue}>Class {cls}</Text>
+            <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.9} style={styles.dropdown} onPress={() => Alert.alert('Section', `Class ${cls} has only Section ${CLASS_TO_SECTION[cls]}`)}>
+            <Text style={styles.dropdownValue}>Section {sec}</Text>
+            <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ gap: 12 }}>
+          {filteredSent.map(s => (
+            <View key={s.id} style={styles.card}>
+              <View style={styles.cardTop}>
+                <View style={[styles.pill, { backgroundColor: '#EAF3FB' }]}>
+                  <Text style={[styles.pillText, { color: '#4A90D9' }]}>{s.subject}</Text>
+                </View>
+                <View style={[styles.pill, { backgroundColor: '#4A90D9' }]}>
+                  <Text style={[styles.pillText, { color: '#FFFFFF' }]}>AI Generated</Text>
+                </View>
+              </View>
+              <Text style={styles.metaGray}>
+                Class {s.class} - {s.section} · Sent {new Date(s.sentAt).toLocaleDateString()}
+              </Text>
+              <Text style={styles.cardTitle}>{s.title}</Text>
+              <View style={styles.progressMetaRow}>
+                <Text style={styles.progressHint}>0/30 submitted</Text>
+                <Text style={styles.justSent}>Just sent</Text>
+              </View>
+              <ProgressBarRow value={5} color="#4A90D9" />
+            </View>
+          ))}
+
+          {filteredBase.map(h => {
+            const pct = h.total === 0 ? 0 : (h.subm / h.total) * 100;
+            const barColor = h.subm === h.total ? '#5CB85C' : '#4A90D9';
+            const done = h.subm === h.total;
+            return (
+              <View key={h.id} style={styles.card}>
+                <View style={styles.cardTop}>
+                  <View style={[styles.pill, { backgroundColor: h.bg }]}>
+                    <Text style={[styles.pillText, { color: h.color }]}>{h.subject}</Text>
+                  </View>
+                  <Text style={styles.dueText}>Due: {h.due}</Text>
+                </View>
+                <Text style={styles.cardTitle}>{h.title}</Text>
+                <Text style={styles.metaGray}>
+                  Class {h.cls} - {h.sec}
+                </Text>
+
+                <View style={styles.progressMetaRow}>
+                  {done ? (
+                    <Text style={styles.allDone}>All Done ✓</Text>
+                  ) : (
+                    <Text style={styles.progressHint}>
+                      {h.subm}/{h.total} submitted
+                    </Text>
+                  )}
+                </View>
+                <ProgressBarRow value={pct} color={barColor} />
+
+                <View style={styles.actionRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => navigation.navigate('StaffSubmissions')}
+                  >
+                    <Text style={styles.linkPrimary}>View Submissions</Text>
+                  </TouchableOpacity>
+                  <View style={styles.actionRight}>
+                    <TouchableOpacity activeOpacity={0.85} onPress={() => Alert.alert('Edit', 'Coming soon')}>
+                      <Text style={styles.linkMuted}>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.85} onPress={() => Alert.alert('Delete', 'Coming soon')}>
+                      <Text style={styles.linkDanger}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 80 },
+
+  topNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  topNavSpacer: { width: 36, height: 36 },
+  topNavTitle: { fontSize: 18, fontWeight: '800', color: '#111827', textAlign: 'center', flex: 1 },
+  addBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#4A90D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  filterRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+
+  dropdown: {
+    flex: 1,
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dropdownValue: { fontSize: 14, color: '#1F2937', fontWeight: '700' },
+
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 16,
+  },
+  cardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  pill: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  pillText: { fontSize: 12, fontWeight: '800' },
+  dueText: { fontSize: 12, color: '#9CA3AF', fontWeight: '700' },
+  metaGray: { marginTop: 8, fontSize: 12, color: '#9CA3AF', fontWeight: '600' },
+  cardTitle: { marginTop: 8, fontSize: 14, fontWeight: '800', color: '#111827' },
+
+  progressMetaRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  progressHint: { fontSize: 11, color: '#9CA3AF', fontWeight: '700' },
+  justSent: { fontSize: 11, color: '#4A90D9', fontWeight: '800' },
+  allDone: { fontSize: 11, color: '#5CB85C', fontWeight: '900' },
+
+  progressOuter: {
+    marginTop: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F3F4F6',
+    overflow: 'hidden',
+  },
+  progressInner: { height: 6, borderRadius: 3 },
+
+  actionRow: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  linkPrimary: { fontSize: 13, fontWeight: '800', color: '#4A90D9' },
+  actionRight: { flexDirection: 'row', gap: 16 },
+  linkMuted: { fontSize: 13, fontWeight: '700', color: '#9CA3AF' },
+  linkDanger: { fontSize: 13, fontWeight: '800', color: '#E85D5D' },
+});

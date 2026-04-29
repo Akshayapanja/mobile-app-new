@@ -33,9 +33,14 @@ const PARENT_CONTACTS: Contact[] = [
 ];
 
 const STAFF_CONTACTS: Contact[] = [
-  { id: '1', name: 'Mrs. Priya Kumar', roleLine: 'Arjun’s Mother', initials: 'PK', bg: '#EAF3FB', fg: '#4A90D9' },
-  { id: '2', name: 'Mrs. Meena Sharma', roleLine: 'Sneha’s Mother', initials: 'MS', bg: '#F0FDF4', fg: '#5CB85C' },
-  { id: '3', name: 'Mr. Rajesh Principal', roleLine: 'Principal', initials: 'RP', bg: '#FFF8E7', fg: '#F5A623' },
+  { id: '1', name: 'Mrs. Priya Kumar', roleLine: "Rohit's Mother", initials: 'PK', bg: '#EAF3FB', fg: '#4A90D9' },
+  { id: '6', name: 'Mrs. Sunita Sharma', roleLine: "Aarav's Mother", initials: 'SS', bg: '#EAF3FB', fg: '#4A90D9' },
+  { id: '7', name: 'Mrs. Meena Patel', roleLine: "Priya's Mother", initials: 'MP', bg: '#F0FDF4', fg: '#5CB85C' },
+  { id: '8', name: 'Mrs. Radha Iyer', roleLine: "Divya's Mother", initials: 'RI', bg: '#FFF8E7', fg: '#F5A623' },
+  { id: '9', name: 'Mrs. Kavitha Singh', roleLine: "Ananya's Mother", initials: 'KS', bg: '#FFF0F0', fg: '#E85D5D' },
+  { id: '10', name: 'Mrs. Suma Reddy', roleLine: "Karthik's Mother", initials: 'SR', bg: '#EAF3FB', fg: '#4A90D9' },
+  { id: '11', name: 'Mrs. Latha Nair', roleLine: "Sneha's Mother", initials: 'LN', bg: '#F0FDF4', fg: '#5CB85C' },
+  { id: '12', name: 'Mrs. Pooja Mehta', roleLine: "Arjun's Mother", initials: 'PM', bg: '#FFF8E7', fg: '#F5A623' },
 ];
 
 const MOCK_THREADS: Record<string, ChatMsg[]> = {

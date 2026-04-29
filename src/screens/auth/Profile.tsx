@@ -10,6 +10,8 @@ type UserShape = {
   phone: string;
   email?: string;
   role?: string;
+  designation?: string;
+  employeeId?: string;
 };
 
 function initialsFromName(name: string) {
@@ -73,15 +75,63 @@ export default function Profile() {
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <Text style={styles.name}>{user?.name || 'Parent'}</Text>
-          <Text style={styles.role}>Parent</Text>
+          <Text style={styles.role}>
+            {user?.role === 'staff' ? (user?.designation || 'Mathematics Teacher') : 'Parent'}
+          </Text>
           <Text style={styles.school}>Delhi Public School, Hyderabad</Text>
         </View>
 
         <View style={{ gap: 10 }}>
           <InfoRow icon="📞" label="Phone" value={user?.phone ? `+91 ${user.phone}` : '-'} />
           <InfoRow icon="✉" label="Email" value={user?.email || '-'} />
+          {user?.role === 'staff' && (
+            <InfoRow icon="🪪" label="Employee ID" value={user?.employeeId || 'EMP001'} />
+          )}
           <InfoRow icon="📅" label="Academic Year" value="2024-25" />
         </View>
+
+        {user?.role === 'staff' && (
+          <>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.teacherProfileCard}
+              onPress={() => navigation.navigate('StaffTeacherProfile')}
+            >
+              <Text style={styles.teacherProfileText}>View Full Teacher Profile →</Text>
+            </TouchableOpacity>
+
+            <View style={styles.quickActionsRow}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                style={styles.quickActionCard}
+                onPress={() => navigation.navigate('StaffPayslip')}
+              >
+                <Text style={styles.quickActionEmoji}>💼</Text>
+                <Text style={styles.quickActionText}>My Payslip</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                style={styles.quickActionCard}
+                onPress={() => navigation.navigate('StaffApplyLeave')}
+              >
+                <Text style={styles.quickActionEmoji}>📅</Text>
+                <Text style={styles.quickActionText}>Apply Leave</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.timetableCard}
+              onPress={() => navigation.navigate('StaffTimetable')}
+            >
+              <View style={styles.timetableLeft}>
+                <Text style={styles.timetableEmoji}>🗓</Text>
+                <Text style={styles.timetableTitle}>My Timetable</Text>
+              </View>
+              <Text style={styles.timetableLink}>View →</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         <TouchableOpacity
           activeOpacity={0.85}
@@ -156,6 +206,44 @@ const styles = StyleSheet.create({
   infoIcon: { fontSize: 18 },
   infoLabel: { fontSize: 12, color: '#6B7280', fontWeight: '600' },
   infoValue: { marginTop: 2, fontSize: 14, fontWeight: '800', color: '#1F2937' },
+
+  teacherProfileCard: {
+    marginTop: 12,
+    backgroundColor: '#EAF3FB',
+    borderRadius: 12,
+    padding: 16,
+  },
+  teacherProfileText: { fontSize: 14, fontWeight: '800', color: '#4A90D9', textAlign: 'center' },
+
+  quickActionsRow: { marginTop: 10, flexDirection: 'row', gap: 10 },
+  quickActionCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickActionEmoji: { fontSize: 20, marginBottom: 6 },
+  quickActionText: { fontSize: 13, fontWeight: '700', color: '#1F2937' },
+
+  timetableCard: {
+    marginTop: 10,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  timetableLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  timetableEmoji: { fontSize: 16 },
+  timetableTitle: { fontSize: 14, fontWeight: '800', color: '#1F2937' },
+  timetableLink: { fontSize: 13, color: '#4A90D9', fontWeight: '700' },
 
   logoutBtn: { marginTop: 12, height: 52, borderRadius: 50, borderWidth: 1, borderColor: '#E85D5D', alignItems: 'center', justifyContent: 'center' },
   logoutBtnText: { color: '#E85D5D', fontWeight: '800', fontSize: 14 },

@@ -1,33 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { CheckCircle2 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-type AttendanceStudent = { roll: string; name: string; status: string };
+type Status = 'P' | 'A' | 'L';
 
-const STUDENTS_BY_CLASS_SECTION: Record<string, Array<{ roll: string; name: string }>> = {
-  '6-A': [
-    { roll: '01', name: 'Aarav Sharma' },
-    { roll: '02', name: 'Priya Patel' },
-    { roll: '03', name: 'Rohit Kumar' },
-    { roll: '04', name: 'Ananya Singh' },
-    { roll: '05', name: 'Karthik Reddy' },
-    { roll: '06', name: 'Sneha Nair' },
-    { roll: '07', name: 'Arjun Mehta' },
-    { roll: '08', name: 'Divya Iyer' },
-  ],
-  '6-B': [
-    { roll: '01', name: 'Vikram Das' },
-    { roll: '02', name: 'Pooja Gupta' },
-    { roll: '03', name: 'Rahul Verma' },
-    { roll: '04', name: 'Meera Pillai' },
-    { roll: '05', name: 'Aditya Joshi' },
-    { roll: '06', name: 'Kavya Menon' },
-    { roll: '07', name: 'Suresh Babu' },
-    { roll: '08', name: 'Lakshmi Devi' },
-  ],
-  '6-C': [
+const DATE_LABEL = 'April 21, 2025';
+
+const CLASSES = ['8', '9', '7'] as const;
+const CLASS_TO_SECTION: Record<string, string> = { '8': 'A', '9': 'B', '7': 'C' };
+const ATTENDANCE_STUDENTS_BY_CLASS_SECTION: Record<string, { roll: string; name: string }[]> = {
+  '8-A': [
     { roll: '01', name: 'Pranav Rao' },
     { roll: '02', name: 'Swathi Reddy' },
     { roll: '03', name: 'Harish Patel' },
@@ -37,273 +28,248 @@ const STUDENTS_BY_CLASS_SECTION: Record<string, Array<{ roll: string; name: stri
     { roll: '07', name: 'Ajay Nair' },
     { roll: '08', name: 'Rekha Sharma' },
   ],
-  '6-D': [
-    { roll: '01', name: 'Mohan Das' },
-    { roll: '02', name: 'Sunita Verma' },
-    { roll: '03', name: 'Vijay Mehta' },
-    { roll: '04', name: 'Geeta Iyer' },
-    { roll: '05', name: 'Ramesh Patel' },
-    { roll: '06', name: 'Sonia Gupta' },
-    { roll: '07', name: 'Kiran Rao' },
-    { roll: '08', name: 'Deepak Joshi' },
-  ],
-
-  '7-A': [
-    { roll: '01', name: 'Meena Pillai' },
-    { roll: '02', name: 'Suresh Sharma' },
-    { roll: '03', name: 'Lakshmi Nair' },
-    { roll: '04', name: 'Arun Kumar' },
-    { roll: '05', name: 'Preethi Reddy' },
-    { roll: '06', name: 'Vishal Singh' },
-    { roll: '07', name: 'Kavitha Das' },
-    { roll: '08', name: 'Rajesh Verma' },
-  ],
-  '7-B': [
-    { roll: '01', name: 'Aarav Sharma' },
-    { roll: '02', name: 'Kavya Menon' },
-    { roll: '03', name: 'Rohit Kumar' },
-    { roll: '04', name: 'Swathi Reddy' },
-    { roll: '05', name: 'Arjun Mehta' },
-    { roll: '06', name: 'Nisha Kumar' },
-    { roll: '07', name: 'Priya Patel' },
-    { roll: '08', name: 'Harish Patel' },
+  '9-B': [
+    { roll: '01', name: 'Varun Reddy' },
+    { roll: '02', name: 'Ankita Joshi' },
+    { roll: '03', name: 'Rahul Nair' },
+    { roll: '04', name: 'Shreya Patel' },
+    { roll: '05', name: 'Aryan Singh' },
+    { roll: '06', name: 'Tanvi Sharma' },
+    { roll: '07', name: 'Kiran Kumar' },
+    { roll: '08', name: 'Ritu Pillai' },
   ],
   '7-C': [
-    { roll: '01', name: 'Deepika Singh' },
-    { roll: '02', name: 'Suresh Babu' },
-    { roll: '03', name: 'Ajay Nair' },
-    { roll: '04', name: 'Meera Pillai' },
-    { roll: '05', name: 'Vikram Das' },
-    { roll: '06', name: 'Rekha Sharma' },
-    { roll: '07', name: 'Pooja Gupta' },
-    { roll: '08', name: 'Ravi Teja' },
-  ],
-  '7-D': [
-    { roll: '01', name: 'Ananya Singh' },
-    { roll: '02', name: 'Mohan Das' },
-    { roll: '03', name: 'Divya Iyer' },
-    { roll: '04', name: 'Sunita Verma' },
-    { roll: '05', name: 'Karthik Reddy' },
-    { roll: '06', name: 'Vijay Mehta' },
-    { roll: '07', name: 'Sneha Nair' },
-    { roll: '08', name: 'Geeta Iyer' },
-  ],
-
-  '8-A': [
-    { roll: '01', name: 'Pranav Rao' },
-    { roll: '02', name: 'Lakshmi Devi' },
-    { roll: '03', name: 'Aditya Joshi' },
-    { roll: '04', name: 'Ramesh Patel' },
-    { roll: '05', name: 'Kavya Menon' },
-    { roll: '06', name: 'Sonia Gupta' },
-    { roll: '07', name: 'Suresh Babu' },
-    { roll: '08', name: 'Kiran Rao' },
-  ],
-  '8-B': [
-    { roll: '01', name: 'Deepak Joshi' },
-    { roll: '02', name: 'Preethi Reddy' },
-    { roll: '03', name: 'Meena Pillai' },
-    { roll: '04', name: 'Vishal Singh' },
-    { roll: '05', name: 'Suresh Sharma' },
-    { roll: '06', name: 'Kavitha Das' },
-    { roll: '07', name: 'Lakshmi Nair' },
-    { roll: '08', name: 'Rajesh Verma' },
-  ],
-  '8-C': [
-    { roll: '01', name: 'Arun Kumar' },
-    { roll: '02', name: 'Aarav Sharma' },
-    { roll: '03', name: 'Sneha Nair' },
-    { roll: '04', name: 'Rohit Kumar' },
-    { roll: '05', name: 'Divya Iyer' },
-    { roll: '06', name: 'Pooja Gupta' },
-    { roll: '07', name: 'Arjun Mehta' },
-    { roll: '08', name: 'Vikram Das' },
-  ],
-  '8-D': [
-    { roll: '01', name: 'Rahul Verma' },
-    { roll: '02', name: 'Ananya Singh' },
-    { roll: '03', name: 'Swathi Reddy' },
-    { roll: '04', name: 'Harish Patel' },
-    { roll: '05', name: 'Nisha Kumar' },
-    { roll: '06', name: 'Ravi Teja' },
-    { roll: '07', name: 'Karthik Reddy' },
-    { roll: '08', name: 'Ajay Nair' },
-  ],
-
-  '9-A': [
-    { roll: '01', name: 'Rekha Sharma' },
-    { roll: '02', name: 'Mohan Das' },
-    { roll: '03', name: 'Sunita Verma' },
-    { roll: '04', name: 'Vijay Mehta' },
-    { roll: '05', name: 'Geeta Iyer' },
-    { roll: '06', name: 'Ramesh Patel' },
-    { roll: '07', name: 'Sonia Gupta' },
-    { roll: '08', name: 'Kiran Rao' },
-  ],
-  '9-B': [
-    { roll: '01', name: 'Deepak Joshi' },
-    { roll: '02', name: 'Meena Pillai' },
-    { roll: '03', name: 'Suresh Sharma' },
-    { roll: '04', name: 'Lakshmi Nair' },
-    { roll: '05', name: 'Arun Kumar' },
-    { roll: '06', name: 'Preethi Reddy' },
-    { roll: '07', name: 'Vishal Singh' },
-    { roll: '08', name: 'Kavitha Das' },
-  ],
-  '9-C': [
-    { roll: '01', name: 'Rajesh Verma' },
-    { roll: '02', name: 'Aarav Sharma' },
-    { roll: '03', name: 'Priya Patel' },
-    { roll: '04', name: 'Rohit Kumar' },
-    { roll: '05', name: 'Ananya Singh' },
-    { roll: '06', name: 'Karthik Reddy' },
-    { roll: '07', name: 'Sneha Nair' },
-    { roll: '08', name: 'Arjun Mehta' },
-  ],
-  '9-D': [
-    { roll: '01', name: 'Divya Iyer' },
-    { roll: '02', name: 'Vikram Das' },
-    { roll: '03', name: 'Pooja Gupta' },
-    { roll: '04', name: 'Rahul Verma' },
-    { roll: '05', name: 'Meera Pillai' },
-    { roll: '06', name: 'Aditya Joshi' },
-    { roll: '07', name: 'Kavya Menon' },
-    { roll: '08', name: 'Suresh Babu' },
-  ],
-
-  '10-A': [
-    { roll: '01', name: 'Lakshmi Devi' },
-    { roll: '02', name: 'Pranav Rao' },
-    { roll: '03', name: 'Swathi Reddy' },
-    { roll: '04', name: 'Harish Patel' },
-    { roll: '05', name: 'Nisha Kumar' },
-    { roll: '06', name: 'Ravi Teja' },
-    { roll: '07', name: 'Deepika Singh' },
-    { roll: '08', name: 'Ajay Nair' },
-  ],
-  '10-B': [
-    { roll: '01', name: 'Rekha Sharma' },
-    { roll: '02', name: 'Mohan Das' },
-    { roll: '03', name: 'Sunita Verma' },
-    { roll: '04', name: 'Vijay Mehta' },
-    { roll: '05', name: 'Geeta Iyer' },
-    { roll: '06', name: 'Ramesh Patel' },
-    { roll: '07', name: 'Sonia Gupta' },
-    { roll: '08', name: 'Kiran Rao' },
-  ],
-  '10-C': [
-    { roll: '01', name: 'Deepak Joshi' },
-    { roll: '02', name: 'Meena Pillai' },
-    { roll: '03', name: 'Suresh Sharma' },
-    { roll: '04', name: 'Lakshmi Nair' },
-    { roll: '05', name: 'Arun Kumar' },
-    { roll: '06', name: 'Preethi Reddy' },
-    { roll: '07', name: 'Vishal Singh' },
-    { roll: '08', name: 'Kavitha Das' },
-  ],
-  '10-D': [
-    { roll: '01', name: 'Rajesh Verma' },
-    { roll: '02', name: 'Aarav Sharma' },
-    { roll: '03', name: 'Priya Patel' },
-    { roll: '04', name: 'Rohit Kumar' },
-    { roll: '05', name: 'Ananya Singh' },
-    { roll: '06', name: 'Karthik Reddy' },
-    { roll: '07', name: 'Sneha Nair' },
-    { roll: '08', name: 'Arjun Mehta' },
+    { roll: '01', name: 'Rohan Mehta' },
+    { roll: '02', name: 'Simran Kaur' },
+    { roll: '03', name: 'Ajith Kumar' },
+    { roll: '04', name: 'Neha Gupta' },
+    { roll: '05', name: 'Varun Sharma' },
+    { roll: '06', name: 'Ankita Nair' },
+    { roll: '07', name: 'Rahul Das' },
+    { roll: '08', name: 'Shreya Kumar' },
   ],
 };
 
+function buildDefaultAttendance(names: string[]): Record<string, Status> {
+  const next: Record<string, Status> = {};
+  names.forEach(n => {
+    next[n] = 'P';
+  });
+  return next;
+}
+
 export default function MarkAttendance() {
-  const [cls, setCls] = useState('8');
-  const [sec, setSec] = useState('A');
-  const [loaded, setLoaded] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const key = useMemo(() => `${cls}-${sec}`, [cls, sec]);
-  const base = useMemo(() => (
-    STUDENTS_BY_CLASS_SECTION[key] || STUDENTS_BY_CLASS_SECTION['8-A']
-  ), [key]);
-  const [students, setStudents] = useState<AttendanceStudent[]>(base.map(s => ({ ...s, status: 'P' })));
-  const [submitted, setSubmitted] = useState(false);
+  const navigation = useNavigation<any>();
+
+  const [selectedClass, setSelectedClass] = useState('8');
+  const [selectedSection, setSelectedSection] = useState('A');
+  const [studentsLoaded, setStudentsLoaded] = useState(false);
+  const [attendance, setAttendance] = useState<Record<string, Status>>({});
 
   useEffect(() => {
-    setStudents(base.map(s => ({ ...s, status: 'P' })));
-    setSubmitted(false);
-  }, [base]);
+    setStudentsLoaded(false);
+    setSelectedSection(CLASS_TO_SECTION[selectedClass]);
+  }, [selectedClass]);
 
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(t);
+  const classSectionKey = `${selectedClass}-${selectedSection}`;
+  const rows = useMemo(
+    () => ATTENDANCE_STUDENTS_BY_CLASS_SECTION[classSectionKey] ?? [],
+    [classSectionKey]
+  );
+
+  const openClassPicker = useCallback(() => {
+    Alert.alert('Class', 'Choose class', [
+      ...CLASSES.map(c => ({
+        text: `Class ${c}`,
+        onPress: () => setSelectedClass(c),
+      })),
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   }, []);
 
-  const setStatus = (i: number, s: string) => {
-    const arr = [...students]; arr[i].status = s; setStudents(arr); setSubmitted(false);
-  };
+  const openSectionPicker = useCallback(() => {
+    const section = CLASS_TO_SECTION[selectedClass];
+    Alert.alert('Section', `Class ${selectedClass} has only Section ${section}`);
+  }, [selectedClass]);
+
+  const loadStudents = useCallback(() => {
+    const list = ATTENDANCE_STUDENTS_BY_CLASS_SECTION[`${selectedClass}-${selectedSection}`] ?? [];
+    setAttendance(buildDefaultAttendance(list.map(s => s.name)));
+    setStudentsLoaded(true);
+  }, [selectedClass, selectedSection]);
+
+  const setStatusForName = useCallback((name: string, status: Status) => {
+    setAttendance(prev => ({ ...prev, [name]: status }));
+  }, []);
+
+  const submit = useCallback(() => {
+    Alert.alert(
+      'Success',
+      `Attendance submitted for Class ${selectedClass}${selectedSection} — April 21 2025`
+    );
+  }, [selectedClass, selectedSection]);
 
   return (
-    <AppShell role="staff">
-      <ScreenHeader title="Mark Attendance" back={false} />
-      <div className="px-5 pt-4">
-        {loading ? (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <Skeleton className="h-12 w-full rounded-lg bg-[#F3F4F6]" />
-              <Skeleton className="h-12 w-full rounded-lg bg-[#F3F4F6]" />
-            </div>
-            <Skeleton className="h-5 w-48 bg-[#F3F4F6]" />
-            <Skeleton className="h-11 w-full rounded-full bg-[#F3F4F6]" />
-            <div className="space-y-2.5 mb-5">
-              {[...Array(7)].map((_, i) => (
-                <Skeleton key={i} className="h-[52px] w-full rounded-xl bg-[#F3F4F6]" />
-              ))}
-            </div>
-            <Skeleton className="h-[52px] w-full rounded-full bg-[#F3F4F6]" />
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <select value={cls} onChange={e => setCls(e.target.value)} className="input-field">
-                {['6', '7', '8', '9', '10'].map(c => <option key={c} value={c}>Class {c}</option>)}
-              </select>
-              <select value={sec} onChange={e => setSec(e.target.value)} className="input-field">
-                {['A', 'B', 'C', 'D'].map(s => <option key={s} value={s}>Section {s}</option>)}
-              </select>
-            </div>
-            <p className="text-[12px] text-muted-foreground mb-3">Date: <span className="font-semibold text-foreground">April 21, 2025</span></p>
-            <button onClick={() => { setLoaded(true); setStudents(base.map(s => ({ ...s, status: 'P' }))); setSubmitted(false); }} className="btn-primary mb-4" style={{ height: 44 }}>Load Students</button>
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.topNav}>
+          <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.85} style={styles.topNavBtn}>
+            <Ionicons name="arrow-back" size={22} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.topNavTitle}>Mark Attendance</Text>
+          <View style={styles.topNavRightSpacer} />
+        </View>
 
-            {loaded && (
-              <div className="space-y-2.5 mb-5">
-                {students.map((s, i) => (
-                  <div key={s.roll} className="card-base p-3 flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-lg bg-secondary text-primary text-[12px] font-semibold flex items-center justify-center">{s.roll}</span>
-                    <p className="flex-1 text-[13px] font-medium text-foreground">{s.name}</p>
-                    <div className="flex gap-1.5">
-                      {[
-                        { k: 'P', bg: '#5CB85C' },
-                        { k: 'A', bg: '#E85D5D' },
-                        { k: 'L', bg: '#F5A623' },
-                      ].map(b => (
-                        <button key={b.k} onClick={() => setStatus(i, b.k)} className={`w-8 h-8 rounded-full text-[12px] font-bold transition ${s.status === b.k ? 'text-white' : 'bg-muted text-muted-foreground'}`} style={s.status === b.k ? { background: b.bg } : {}}>
-                          {b.k}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+        <View style={styles.filterRow}>
+          <TouchableOpacity activeOpacity={0.9} style={styles.dropdown} onPress={openClassPicker}>
+            <Text style={styles.dropdownValue}>Class {selectedClass}</Text>
+            <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.9} style={styles.dropdown} onPress={openSectionPicker}>
+            <Text style={styles.dropdownValue}>Section {selectedSection}</Text>
+            <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
 
-            {submitted && (
-              <div className="rounded-xl bg-tint-green border border-success/30 p-3.5 mb-4 flex items-start gap-2 animate-fade-in">
-                <CheckCircle2 size={18} className="text-success mt-0.5" />
-                <p className="text-[12px] text-foreground">Attendance submitted for Class {cls}{sec} — April 21, 2025</p>
-              </div>
-            )}
+        <View style={styles.dateRow}>
+          <Text style={styles.dateMuted}>Date:</Text>
+          <Text style={styles.dateBold}> {DATE_LABEL}</Text>
+        </View>
 
-            <button onClick={() => setSubmitted(true)} className="btn-primary mb-4">Submit Attendance</button>
-          </>
-        )}
-      </div>
-    </AppShell>
+        <TouchableOpacity activeOpacity={0.9} style={styles.primaryBtn48} onPress={loadStudents}>
+          <Text style={styles.primaryBtnText}>Load Students</Text>
+        </TouchableOpacity>
+
+        {studentsLoaded &&
+          rows.map(s => {
+            const keyName = s.name;
+            const current = attendance[keyName] ?? 'P';
+            return (
+              <View key={`${s.roll}-${keyName}`} style={styles.studentCard}>
+                <View style={styles.rollPill}>
+                  <Text style={styles.rollText}>{s.roll}</Text>
+                </View>
+                <Text style={styles.studentName} numberOfLines={2}>
+                  {s.name}
+                </Text>
+                <View style={styles.toggleRow}>
+                  {(
+                    [
+                      { k: 'P' as const, activeBg: '#5CB85C' },
+                      { k: 'A' as const, activeBg: '#E85D5D' },
+                      { k: 'L' as const, activeBg: '#F5A623' },
+                    ] as const
+                  ).map(opt => {
+                    const on = current === opt.k;
+                    return (
+                      <TouchableOpacity
+                        key={opt.k}
+                        activeOpacity={0.9}
+                        onPress={() => setStatusForName(keyName, opt.k)}
+                        style={[
+                          styles.circleToggle,
+                          on ? { backgroundColor: opt.activeBg, borderColor: opt.activeBg } : styles.circleInactive,
+                        ]}
+                      >
+                        <Text style={[styles.circleToggleText, on ? styles.circleToggleTextOn : styles.circleToggleTextOff]}>
+                          {opt.k}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            );
+          })}
+
+        <TouchableOpacity activeOpacity={0.9} style={styles.submitBtn} onPress={submit}>
+          <Text style={styles.primaryBtnText}>Submit Attendance</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 80 },
+
+  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  topNavBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  topNavTitle: { fontSize: 18, fontWeight: '700', color: '#111827', textAlign: 'center', flex: 1 },
+  topNavRightSpacer: { width: 40, height: 40 },
+
+  filterRow: { flexDirection: 'row', gap: 12, marginBottom: 14 },
+  dropdown: {
+    flex: 1,
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dropdownValue: { fontSize: 14, color: '#1F2937', fontWeight: '600' },
+
+  dateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
+  dateMuted: { fontSize: 13, color: '#9CA3AF', fontWeight: '600' },
+  dateBold: { fontSize: 13, fontWeight: '700', color: '#1F2937' },
+
+  primaryBtn48: {
+    width: '100%',
+    height: 48,
+    borderRadius: 50,
+    backgroundColor: '#4A90D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  primaryBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+
+  studentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+  },
+  rollPill: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#EAF3FB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rollText: { fontSize: 12, fontWeight: '800', color: '#4A90D9' },
+  studentName: { flex: 1, marginLeft: 12, fontSize: 14, fontWeight: '700', color: '#111827' },
+
+  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  circleToggle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  circleInactive: { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB' },
+  circleToggleText: { fontSize: 12, fontWeight: '900' },
+  circleToggleTextOn: { color: '#FFFFFF' },
+  circleToggleTextOff: { color: '#9CA3AF' },
+
+  submitBtn: {
+    marginTop: 16,
+    width: '100%',
+    height: 52,
+    borderRadius: 50,
+    backgroundColor: '#4A90D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

@@ -1,130 +1,433 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AppShell } from '@/components/AppShell';
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { toast } from 'sonner';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+function fmtDateLabel(d: Date) {
+  const month = d.toLocaleString('en-US', { month: 'long' });
+  return `${month} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function monthLabel(base: Date, monthOffset: number) {
+  const d = new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
+  const m = d.toLocaleString('en-US', { month: 'long' });
+  return `${m} ${d.getFullYear()}`;
+}
+
+function daysInMonth(base: Date, monthOffset: number) {
+  const d = new Date(base.getFullYear(), base.getMonth() + monthOffset + 1, 0);
+  return d.getDate();
+}
+
+function startDow(base: Date, monthOffset: number) {
+  const d = new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
+  return d.getDay();
+}
+
+const CLASSES = ['8', '9', '7'] as const;
+const CLASS_TO_SECTION: Record<string, string> = { '8': 'A', '9': 'B', '7': 'C' };
+
+type FormState = {
+  cls: string;
+  sec: string;
+  subject: string;
+  title: string;
+  desc: string;
+  due: Date;
+  maxMarks: string;
+};
+
+const initialForm = (): FormState => ({
+  cls: '8',
+  sec: 'A',
+  subject: 'Mathematics',
+  title: '',
+  desc: '',
+  due: new Date(2025, 3, 20),
+  maxMarks: '100',
+});
 
 export default function CreateHomework() {
-  const nav = useNavigate();
-  const [form, setForm] = useState({ cls: '8', sec: 'A', subject: 'Mathematics', title: '', desc: '', due: '2025-04-30', maxMarks: '20' });
+  const navigation = useNavigation<any>();
+  const [form, setForm] = useState<FormState>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const [showDuePicker, setShowDuePicker] = useState(false);
+  const [pickerMonthOffset, setPickerMonthOffset] = useState(0);
+  const [tempSelectedDay, setTempSelectedDay] = useState<number | null>(null);
+
+  const pickerBase = useMemo(() => new Date(2025, 3, 1), []);
+  const pickerLabel = useMemo(() => monthLabel(pickerBase, pickerMonthOffset), [pickerBase, pickerMonthOffset]);
+  const pickerDays = useMemo(() => daysInMonth(pickerBase, pickerMonthOffset), [pickerBase, pickerMonthOffset]);
+  const pickerStart = useMemo(() => startDow(pickerBase, pickerMonthOffset), [pickerBase, pickerMonthOffset]);
+  const today = useMemo(() => new Date(), []);
+
   useEffect(() => {
-    setSubmitting(false);
-    setSuccess(false);
-  }, []);
+    setForm(f => ({ ...f, sec: CLASS_TO_SECTION[f.cls], subject: 'Mathematics' }));
+  }, [form.cls]);
+
+  const openDuePicker = () => {
+    setPickerMonthOffset(0);
+    setTempSelectedDay(null);
+    setShowDuePicker(true);
+  };
+
+  const closeDuePicker = () => {
+    setShowDuePicker(false);
+    setTempSelectedDay(null);
+  };
+
+  const confirmDuePicker = () => {
+    const day = tempSelectedDay;
+    if (!day) return;
+    const chosen = new Date(pickerBase.getFullYear(), pickerBase.getMonth() + pickerMonthOffset, day);
+    setForm(f => ({ ...f, due: chosen }));
+    closeDuePicker();
+  };
+
+  const openClassPicker = () => {
+    Alert.alert('Class', 'Choose class', [
+      ...CLASSES.map(c => ({ text: `Class ${c}`, onPress: () => setForm(f => ({ ...f, cls: c })) })),
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  const openSectionPicker = () => {
+    Alert.alert('Section', `Class ${form.cls} has only Section ${CLASS_TO_SECTION[form.cls]}`);
+  };
+
+  const validate = () => {
+    const { cls, sec, subject, title, desc, due, maxMarks } = form;
+    if (!cls || !sec || !subject.trim() || !title.trim() || !desc.trim() || !due || !maxMarks.trim()) {
+      Alert.alert('Error', 'Please fill all required fields');
+      return false;
+    }
+    return true;
+  };
 
   const submit = () => {
     if (submitting) return;
-    if (!form.cls || !form.sec || !form.subject || !form.title || !form.desc || !form.due || !form.maxMarks) {
-      toast.error('Please fill all required fields');
-      return;
-    }
+    if (!validate()) return;
     setSubmitting(true);
     setTimeout(() => {
       setSubmitting(false);
       setSuccess(true);
-      toast.success('Homework created successfully');
     }, 1000);
   };
 
+  const resetForm = () => {
+    setForm(initialForm());
+    setSuccess(false);
+  };
+
+  const goHomeworkList = () => {
+    navigation.navigate('StaffTabs', { screen: 'StaffHomeworkTab' });
+  };
+
   return (
-    <AppShell role="staff">
-      <ScreenHeader
-        title="Create Homework"
-        right={
-          <button
-            onClick={() => nav('/staff/homework-bot')}
-            aria-label="AI Homework Bot"
-            className="flex items-center justify-center"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: '#FFF8E7',
-              border: '1px solid #F5A623',
-            }}
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.topNav}>
+          <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.85} style={styles.topNavBtn}>
+            <Ionicons name="arrow-back" size={22} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.topNavTitle}>Create Homework</Text>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('StaffHomeworkBot')}
+            style={styles.botBtn}
           >
-            <span style={{ fontSize: 18, lineHeight: 1 }}>🤖</span>
-          </button>
-        }
-      />
-      <div className="px-5 pt-4">
+            <Text style={styles.botEmoji}>🤖</Text>
+          </TouchableOpacity>
+        </View>
+
         {success ? (
-          <div
-            style={{ background: '#F0FDF4', border: '1px solid #5CB85C', borderRadius: 12, padding: 16 }}
-            className="animate-fade-in"
-          >
-            <p style={{ color: '#5CB85C', fontWeight: 700, fontSize: 15 }}>✅ Homework Created Successfully!</p>
-            <p className="text-[13px] text-muted-foreground mt-2">
-              Subject: <span className="font-medium text-foreground">{form.subject}</span>
+          <View style={styles.successCard}>
+            <Text style={styles.successTitle}>✅ Homework Created Successfully!</Text>
+            <Text style={styles.successBody}>
+              Class {form.cls} · Subject {form.subject}
               {'\n'}
-              Class: <span className="font-medium text-foreground">{form.cls}</span> · Section:{' '}
-              <span className="font-medium text-foreground">{form.sec}</span>
-              {'\n'}
-              Due date: <span className="font-medium text-foreground">{form.due}</span>
-            </p>
-            <p className="text-[13px] text-muted-foreground mt-2">
-              Homework has been assigned to
-              {'\n'}
-              students. Parents will be notified.
-            </p>
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <button
-                onClick={() => {
-                  setForm({ cls: '8', sec: 'A', subject: 'Mathematics', title: '', desc: '', due: '2025-04-30', maxMarks: '20' });
-                  setSuccess(false);
-                }}
-                className="btn-ghost border border-border"
-              >
-                Create Another
-              </button>
-              <button onClick={() => nav('/staff/homework')} className="btn-primary">
-                View Homework List
-              </button>
-            </div>
-          </div>
+              Due {fmtDateLabel(form.due)}
+            </Text>
+            <Text style={styles.successMuted}>
+              Homework assigned to students.{'\n'}
+              Parents will be notified.
+            </Text>
+            <TouchableOpacity activeOpacity={0.9} style={styles.ghostBtn} onPress={resetForm}>
+              <Text style={styles.ghostBtnText}>Create Another</Text>
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.9} style={styles.primaryWide} onPress={goHomeworkList}>
+              <Text style={styles.primaryWideText}>View Homework List</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[12px] font-medium block mb-1.5">Class</label>
-                <select value={form.cls} onChange={e => setForm({ ...form, cls: e.target.value })} className="input-field">{['6', '7', '8', '9', '10'].map(c => <option key={c}>{c}</option>)}</select>
-              </div>
-              <div>
-                <label className="text-[12px] font-medium block mb-1.5">Section</label>
-                <select value={form.sec} onChange={e => setForm({ ...form, sec: e.target.value })} className="input-field">{['A', 'B', 'C'].map(s => <option key={s}>{s}</option>)}</select>
-              </div>
-            </div>
-            <div>
-              <label className="text-[12px] font-medium block mb-1.5">Subject</label>
-              <input value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} className="input-field" />
-            </div>
-            <div>
-              <label className="text-[12px] font-medium block mb-1.5">Title</label>
-              <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Homework title" className="input-field" />
-            </div>
-            <div>
-              <label className="text-[12px] font-medium block mb-1.5">Description</label>
-              <textarea value={form.desc} onChange={e => setForm({ ...form, desc: e.target.value })} rows={4} placeholder="Homework details..." className="input-field resize-none" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[12px] font-medium block mb-1.5">Due Date</label>
-                <input type="date" value={form.due} onChange={e => setForm({ ...form, due: e.target.value })} className="input-field" />
-              </div>
-              <div>
-                <label className="text-[12px] font-medium block mb-1.5">Max Marks</label>
-                <input value={form.maxMarks} onChange={e => setForm({ ...form, maxMarks: e.target.value })} className="input-field" />
-              </div>
-            </div>
-            <button onClick={submit} disabled={submitting} className="btn-primary mt-2">
-              {submitting ? 'Submitting...' : 'Create Homework'}
-            </button>
-          </div>
+          <View style={{ gap: 16 }}>
+            <View style={styles.field}>
+              <Text style={styles.label}>Class</Text>
+              <TouchableOpacity activeOpacity={0.9} style={styles.dropdown} onPress={openClassPicker}>
+                <Text style={styles.dropdownValue}>{form.cls}</Text>
+                <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Section</Text>
+              <TouchableOpacity activeOpacity={0.9} style={styles.dropdown} onPress={openSectionPicker}>
+                <Text style={styles.dropdownValue}>{form.sec}</Text>
+                <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Subject</Text>
+              <TextInput
+                value={form.subject}
+                editable={false}
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Title</Text>
+              <TextInput
+                value={form.title}
+                onChangeText={t => setForm(f => ({ ...f, title: t }))}
+                placeholder="Homework title"
+                placeholderTextColor="#9CA3AF"
+                style={styles.input}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Description</Text>
+              <TextInput
+                value={form.desc}
+                onChangeText={t => setForm(f => ({ ...f, desc: t }))}
+                placeholder="Homework details..."
+                placeholderTextColor="#9CA3AF"
+                style={styles.textarea}
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Due Date</Text>
+              <TouchableOpacity activeOpacity={0.9} style={styles.dropdown} onPress={openDuePicker}>
+                <Text style={styles.dropdownValue}>{fmtDateLabel(form.due)}</Text>
+                <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Max Marks</Text>
+              <TextInput
+                value={form.maxMarks}
+                onChangeText={t => setForm(f => ({ ...f, maxMarks: t }))}
+                keyboardType="numeric"
+                style={styles.input}
+              />
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.9}
+              disabled={submitting}
+              style={[styles.submitBtn, submitting ? styles.submitBtnDisabled : null]}
+              onPress={submit}
+            >
+              <Text style={styles.submitText}>{submitting ? 'Creating...' : 'Create Homework'}</Text>
+            </TouchableOpacity>
+          </View>
         )}
-      </div>
-    </AppShell>
+      </ScrollView>
+
+      <Modal visible={showDuePicker} transparent animationType="fade" onRequestClose={closeDuePicker}>
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerSheet}>
+            <Text style={styles.pickerTitle}>Select Date</Text>
+
+            <View style={styles.pickerMonthRow}>
+              <TouchableOpacity activeOpacity={0.85} onPress={() => setPickerMonthOffset(v => v - 1)} style={styles.monthArrowBtn}>
+                <Text style={styles.monthArrow}>←</Text>
+              </TouchableOpacity>
+              <Text style={styles.monthLabel}>{pickerLabel}</Text>
+              <TouchableOpacity activeOpacity={0.85} onPress={() => setPickerMonthOffset(v => v + 1)} style={styles.monthArrowBtn}>
+                <Text style={styles.monthArrow}>→</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.dateGrid}>
+              {Array.from({ length: pickerStart }).map((_, i) => (
+                <View key={`sp-${i}`} style={styles.dateCell} />
+              ))}
+              {Array.from({ length: pickerDays }).map((_, i) => {
+                const day = i + 1;
+                const isSelected = tempSelectedDay === day;
+                const isToday =
+                  today.getFullYear() === pickerBase.getFullYear() &&
+                  today.getMonth() === pickerBase.getMonth() + pickerMonthOffset &&
+                  today.getDate() === day;
+
+                return (
+                  <TouchableOpacity
+                    key={`d-${day}`}
+                    activeOpacity={0.85}
+                    onPress={() => setTempSelectedDay(day)}
+                    style={[
+                      styles.dateCell,
+                      styles.dateCircle,
+                      isSelected ? styles.dateSelected : null,
+                      !isSelected && isToday ? styles.dateToday : null,
+                    ]}
+                  >
+                    <Text style={[styles.dateText, isSelected ? styles.dateTextSelected : null]}>{day}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={[styles.confirmBtn, !tempSelectedDay ? styles.confirmBtnDisabled : null]}
+              disabled={!tempSelectedDay}
+              onPress={confirmDuePicker}
+            >
+              <Text style={styles.confirmBtnText}>Confirm</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity activeOpacity={0.9} style={styles.cancelBtn} onPress={closeDuePicker}>
+              <Text style={styles.cancelBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 80 },
+
+  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  topNavBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  topNavTitle: { fontSize: 18, fontWeight: '700', color: '#111827', textAlign: 'center', flex: 1 },
+  botBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFF8E7',
+    borderWidth: 1,
+    borderColor: '#F5A623',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  botEmoji: { fontSize: 18, lineHeight: 20 },
+
+  field: { gap: 8 },
+  label: { fontSize: 13, color: '#9CA3AF', fontWeight: '700' },
+  dropdown: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dropdownValue: { fontSize: 14, color: '#1F2937', fontWeight: '700' },
+  input: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 14,
+    color: '#1F2937',
+    fontWeight: '600',
+  },
+  textarea: {
+    height: 100,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: '#1F2937',
+    fontWeight: '600',
+  },
+
+  submitBtn: {
+    marginTop: 8,
+    width: '100%',
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#4A90D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitBtnDisabled: { backgroundColor: '#D1D5DB' },
+  submitText: { color: '#FFFFFF', fontSize: 14, fontWeight: '900' },
+
+  successCard: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#5CB85C',
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  successTitle: { fontSize: 15, fontWeight: '900', color: '#5CB85C' },
+  successBody: { fontSize: 13, color: '#374151', fontWeight: '700', lineHeight: 18 },
+  successMuted: { fontSize: 13, color: '#6B7280', fontWeight: '700', lineHeight: 18 },
+
+  ghostBtn: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  ghostBtnText: { fontSize: 13, fontWeight: '900', color: '#374151' },
+  primaryWide: {
+    backgroundColor: '#4A90D9',
+    borderRadius: 999,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  primaryWideText: { fontSize: 13, fontWeight: '900', color: '#FFFFFF' },
+
+  pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  pickerSheet: { width: '100%', maxWidth: 420, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', padding: 16 },
+  pickerTitle: { fontSize: 15, fontWeight: '900', color: '#111827', textAlign: 'center', marginBottom: 12 },
+  pickerMonthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  monthArrowBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  monthArrow: { fontSize: 16, fontWeight: '900', color: '#4A90D9' },
+  monthLabel: { fontSize: 14, fontWeight: '900', color: '#111827' },
+  dateGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  dateCell: { width: `${100 / 7}%`, height: 44, alignItems: 'center', justifyContent: 'center' },
+  dateCircle: { width: 36, height: 36, borderRadius: 18 },
+  dateSelected: { backgroundColor: '#4A90D9' },
+  dateToday: { borderWidth: 1, borderColor: '#4A90D9' },
+  dateText: { fontSize: 12, fontWeight: '900', color: '#111827' },
+  dateTextSelected: { color: '#FFFFFF' },
+  confirmBtn: { marginTop: 14, width: '100%', height: 44, borderRadius: 22, backgroundColor: '#4A90D9', alignItems: 'center', justifyContent: 'center' },
+  confirmBtnDisabled: { backgroundColor: '#D1D5DB' },
+  confirmBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '900' },
+  cancelBtn: { marginTop: 10, width: '100%', height: 44, borderRadius: 22, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' },
+  cancelBtnText: { color: '#111827', fontSize: 13, fontWeight: '900' },
+});

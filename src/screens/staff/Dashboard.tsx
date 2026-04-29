@@ -1,9 +1,10 @@
-// ✅ Converted from React Web → React Native
+// Converted from React Web to React Native
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
 import { USERS } from '../../lib/mockData';
 
@@ -21,13 +22,28 @@ type Nav = {
 };
 
 type Accent = 'blue' | 'gray';
+const ICONS = {
+  classes: '\u{1F4DA}',
+  students: '\u{1F465}',
+  pending: '\u{1F4DD}',
+  marked: '\u{2705}',
+  classTeacher: '\u{1F3EB}',
+  classCard: '\u{1F4D8}',
+  markAttendance: '\u{1F4CB}',
+  createHomework: '\u{1F4DD}',
+  aiBot: '\u{1F916}',
+  studentsAction: '\u{1F465}',
+  marksEntry: '\u{1F4CA}',
+  timetable: '\u{1F5D3}',
+} as const;
 
 export default function StaffDashboard() {
   const navigation = useNavigation<Nav>();
 
   const [name, setName] = useState('');
   const [designation, setDesignation] = useState('');
-  const [subject, setSubject] = useState('');
+  const teacherName = 'Mrs. Lakshmi Subramaniam';
+  const teacherDesignation = 'Mathematics Teacher';
 
   useEffect(() => {
     let mounted = true;
@@ -43,7 +59,6 @@ export default function StaffDashboard() {
       const fallback = USERS.find(x => x.phone === u.phone);
       setName(u.name || fallback?.name || '');
       setDesignation(u.designation || fallback?.designation || '');
-      setSubject(u.subject || fallback?.subject || 'Mathematics');
     })();
     return () => {
       mounted = false;
@@ -67,8 +82,8 @@ export default function StaffDashboard() {
 
   const statsRow = useMemo(
     () => [
-      { value: '5', label: 'Classes' },
-      { value: '180', label: 'Students' },
+      { value: '3', label: 'Classes' },
+      { value: '96', label: 'Students' },
       { value: '8A', label: 'My Class' },
     ],
     []
@@ -76,36 +91,42 @@ export default function StaffDashboard() {
 
   const summary = useMemo(
     () => [
-      { icon: '📚', label: 'My Classes', value: '5', bg: '#EAF3FB' },
-      { icon: '👥', label: 'Students', value: '180', bg: '#F0FDF4' },
-      { icon: '📝', label: 'Pending HW', value: '3', bg: '#FFF8E7' },
-      { icon: '✅', label: 'Marked Today', value: '2', bg: '#FFF0F0' },
+      { icon: ICONS.classes, label: 'My Classes', value: '3', bg: '#EAF3FB' },
+      { icon: ICONS.students, label: 'Students', value: '96', bg: '#F0FDF4' },
+      { icon: ICONS.pending, label: 'Pending HW', value: '3', bg: '#FFF8E7' },
+      { icon: ICONS.marked, label: 'Marked Today', value: '2', bg: '#FFF0F0' },
     ],
     []
   );
 
-  const periods = useMemo(
+  const todaysClasses = useMemo(
     () => [
       {
-        title: `${subject} — Class 8A`,
-        time: '8:00 AM - 8:45 AM | Room 12',
+        id: '1',
+        className: 'Class 8A',
+        subject: 'Mathematics',
+        room: 'Room 12',
+        time: '8:00 AM - 8:45 AM',
         status: 'Ongoing',
-        accent: 'blue' as Accent,
       },
       {
-        title: `${subject} — Class 9B`,
-        time: '10:30 AM - 11:15 AM | Room 8',
+        id: '2',
+        className: 'Class 9B',
+        subject: 'Mathematics',
+        room: 'Room 8',
+        time: '10:30 AM - 11:15 AM',
         status: 'Upcoming',
-        accent: 'gray' as Accent,
       },
       {
-        title: `${subject} — Class 7C`,
-        time: '11:15 AM - 12:00 PM | Room 5',
+        id: '3',
+        className: 'Class 7C',
+        subject: 'Mathematics',
+        room: 'Room 5',
+        time: '11:15 AM - 12:00 PM',
         status: 'Upcoming',
-        accent: 'gray' as Accent,
       },
     ],
-    [subject]
+    []
   );
 
   const dateLabel = useMemo(() => {
@@ -122,7 +143,7 @@ export default function StaffDashboard() {
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.hello}>Hello,</Text>
-            <Text style={styles.helloName}>{firstName || name || 'Staff'} 👋</Text>
+            <Text style={styles.helloName}>{firstName || name || 'Staff'}</Text>
           </View>
 
           <TouchableOpacity
@@ -145,13 +166,14 @@ export default function StaffDashboard() {
 
             <View style={styles.teacherMeta}>
               <Text style={styles.teacherName} numberOfLines={1}>
-                {name || 'Staff Member'}
+                {teacherName || name || 'Staff Member'}
               </Text>
               <Text style={styles.teacherDesignation} numberOfLines={1}>
-                {designation || 'Teacher'}
+                {teacherDesignation || designation || 'Teacher'}
               </Text>
               <View style={styles.classPill}>
-                <Text style={styles.classPillText}>Class Teacher — Class 8A</Text>
+                <Text style={styles.classPillIcon}>{ICONS.classTeacher}</Text>
+                <Text style={styles.classPillText}>Class Teacher - Class 8A</Text>
               </View>
             </View>
           </View>
@@ -172,7 +194,7 @@ export default function StaffDashboard() {
           <View style={styles.teachingTodayRow}>
             <Text style={styles.teachingTodayLabel}>Teaching Today:</Text>
             <View style={styles.subjectPills}>
-              {['Mathematics', 'Science', 'English'].map(s => (
+              {['Mathematics'].map(s => (
                 <View key={s} style={styles.subjectPill}>
                   <Text style={styles.subjectPillText}>{s}</Text>
                 </View>
@@ -198,16 +220,21 @@ export default function StaffDashboard() {
         </View>
 
         <View style={styles.periodList}>
-          {periods.map((p, idx) => {
-            const isOngoing = p.status === 'Ongoing';
+          {todaysClasses.map(item => {
+            const isOngoing = (item?.status || '') === 'Ongoing';
             return (
-              <View key={`${p.title}-${idx}`} style={styles.periodCard}>
-                <View style={[styles.periodBar, p.accent === 'blue' ? styles.barBlue : styles.barGray]} />
+              <View key={item?.id || `${item?.className || 'class'}-${item?.time || ''}`} style={styles.periodCard}>
+                <View style={[styles.periodBar, isOngoing ? styles.barBlue : styles.barGray]} />
                 <View style={styles.periodBody}>
                   <View style={styles.periodTopRow}>
-                    <Text style={styles.periodTitle} numberOfLines={1}>
-                      {p.title}
-                    </Text>
+                    <View style={styles.periodTitleRow}>
+                      <Text style={styles.periodEmoji}>{ICONS.classCard}</Text>
+                      <Text style={styles.periodTitle} numberOfLines={1}>
+                        {(item?.subject || '') && (item?.className || '')
+                          ? `${item?.subject || ''} - ${item?.className || ''}`
+                          : item?.subject || item?.className || ''}
+                      </Text>
+                    </View>
                     <View
                       style={[
                         styles.statusPill,
@@ -215,11 +242,13 @@ export default function StaffDashboard() {
                       ]}
                     >
                       <Text style={[styles.statusText, isOngoing ? styles.textOngoing : styles.textUpcoming]}>
-                        {p.status}
+                        {item?.status || ''}
                       </Text>
                     </View>
                   </View>
-                  <Text style={styles.periodTime}>{p.time}</Text>
+                  <Text style={styles.periodTime}>
+                    {`${item?.time || ''}${item?.room ? ` | ${item?.room}` : ''}`}
+                  </Text>
                 </View>
               </View>
             );
@@ -235,7 +264,7 @@ export default function StaffDashboard() {
               onPress={() => navigation.navigate('StaffAttendanceTab')}
               style={[styles.actionCard, styles.bgBlue]}
             >
-              <Text style={styles.actionIcon}>📋</Text>
+              <Text style={styles.actionIcon}>{ICONS.markAttendance}</Text>
               <Text style={styles.actionTitle}>Mark Attendance</Text>
             </TouchableOpacity>
 
@@ -244,7 +273,7 @@ export default function StaffDashboard() {
               onPress={() => navigation.navigate('StaffCreateHomework')}
               style={[styles.actionCard, styles.bgGreen]}
             >
-              <Text style={styles.actionIcon}>📝</Text>
+              <Text style={styles.actionIcon}>{ICONS.createHomework}</Text>
               <Text style={styles.actionTitle}>Create Homework</Text>
             </TouchableOpacity>
 
@@ -253,7 +282,7 @@ export default function StaffDashboard() {
               onPress={() => navigation.navigate('StaffHomeworkBot')}
               style={[styles.actionCard, styles.bgAmber]}
             >
-              <Text style={styles.actionIcon}>🤖</Text>
+              <Text style={styles.actionIcon}>{ICONS.aiBot}</Text>
               <Text style={styles.actionTitle}>AI Homework Bot</Text>
             </TouchableOpacity>
           </View>
@@ -264,7 +293,7 @@ export default function StaffDashboard() {
               onPress={() => navigation.navigate('StaffStudentList')}
               style={[styles.actionCard, styles.bgBlue]}
             >
-              <Text style={styles.actionIcon}>👥</Text>
+              <Text style={styles.actionIcon}>{ICONS.studentsAction}</Text>
               <Text style={styles.actionTitle}>Students</Text>
             </TouchableOpacity>
 
@@ -273,7 +302,7 @@ export default function StaffDashboard() {
               onPress={() => navigation.navigate('StaffMarksEntry')}
               style={[styles.actionCard, styles.bgPink]}
             >
-              <Text style={styles.actionIcon}>📊</Text>
+              <Text style={styles.actionIcon}>{ICONS.marksEntry}</Text>
               <Text style={styles.actionTitle}>Marks Entry</Text>
             </TouchableOpacity>
 
@@ -282,7 +311,7 @@ export default function StaffDashboard() {
               onPress={() => navigation.navigate('StaffTimetable')}
               style={[styles.actionCard, styles.bgBlue]}
             >
-              <Text style={styles.actionIcon}>🗓</Text>
+              <Text style={styles.actionIcon}>{ICONS.timetable}</Text>
               <Text style={styles.actionTitle}>My Timetable</Text>
             </TouchableOpacity>
           </View>
@@ -296,6 +325,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    paddingTop: 0,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -378,6 +408,9 @@ const styles = StyleSheet.create({
   },
   classPill: {
     marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     alignSelf: 'flex-start',
     backgroundColor: '#F0FDF4',
     borderRadius: 999,
@@ -385,6 +418,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderWidth: 1,
     borderColor: '#BBF7D0',
+  },
+  classPillIcon: {
+    fontSize: 12,
   },
   classPillText: {
     fontSize: 11,
@@ -516,8 +552,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
   },
-  periodTitle: {
+  periodTitleRow: {
     flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  periodEmoji: {
+    fontSize: 14,
+  },
+  periodTitle: {
     fontSize: 14,
     fontWeight: '800',
     color: '#111827',

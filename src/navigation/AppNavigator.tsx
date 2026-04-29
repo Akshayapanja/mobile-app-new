@@ -37,8 +37,19 @@ import ChatScreen from '../screens/shared/Chat';
 
 // Staff screens
 import StaffDashboard from '../screens/staff/Dashboard';
-// NOTE: many staff screens are still web versions (AppShell/lucide-react imports).
-// Keep staff stack bundle-safe by using ComingSoon until converted.
+import StaffMarkAttendanceScreen from '../screens/staff/MarkAttendance';
+import StaffHomeworkScreen from '../screens/staff/StaffHomework';
+import StaffCreateHomeworkScreen from '../screens/staff/CreateHomework';
+import StaffSubmissionsScreen from '../screens/staff/Submissions';
+import StaffMarksEntryScreen from '../screens/staff/MarksEntry';
+import StaffHomeworkBotScreen from '../screens/staff/HomeworkBot';
+import StaffApplyLeaveScreen from '../screens/staff/StaffApplyLeave';
+import StaffPayslipScreen from '../screens/staff/Payslip';
+import StaffTeacherProfileScreen from '../screens/staff/TeacherProfile';
+import StaffTimetableScreen from '../screens/staff/StaffTimetable';
+import StaffStudentListScreen from '../screens/staff/StudentList';
+import StaffNotificationsScreen from '../screens/staff/StaffNotifications';
+import StaffBroadcastScreen from '../screens/staff/BroadcastMessage';
 
 function AuthStack() {
   return (
@@ -145,23 +156,13 @@ function StaffTabNavigator() {
           }
           return <Ionicons name={iconName} size={22} color={color} />;
         },
-        tabBarLabel: ({}) => {
-          const labels: Record<string, string> = {
-            StaffHome: 'Home',
-            StaffAttendanceTab: 'Attendance',
-            StaffHomeworkTab: 'Homework',
-            StaffMessagesTab: 'Messages',
-            StaffProfileTab: 'Profile',
-          };
-          return labels[route.name] || route.name;
-        },
       })}
     >
-      <Tab.Screen name="StaffHome" component={StaffDashboard} />
-      <Tab.Screen name="StaffAttendanceTab" component={ComingSoon} />
-      <Tab.Screen name="StaffHomeworkTab" component={ComingSoon} />
-      <Tab.Screen name="StaffMessagesTab" component={MessagesScreen} />
-      <Tab.Screen name="StaffProfileTab" component={ProfileScreen} />
+      <Tab.Screen name="StaffHome" component={StaffDashboard} options={{ tabBarLabel: 'Home' }} />
+      <Tab.Screen name="StaffAttendanceTab" component={StaffMarkAttendanceScreen} options={{ tabBarLabel: 'Attendance' }} />
+      <Tab.Screen name="StaffHomeworkTab" component={StaffHomeworkScreen} options={{ tabBarLabel: 'Homework' }} />
+      <Tab.Screen name="StaffMessagesTab" component={MessagesScreen} options={{ tabBarLabel: 'Messages' }} />
+      <Tab.Screen name="StaffProfileTab" component={ProfileScreen} options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>
   );
 }
@@ -170,21 +171,21 @@ function StaffStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="StaffTabs" component={StaffTabNavigator} />
-      <Stack.Screen name="StaffCreateHomework" component={ComingSoon} />
-      <Stack.Screen name="StaffSubmissions" component={ComingSoon} />
-      <Stack.Screen name="StaffMarksEntry" component={ComingSoon} />
-      <Stack.Screen name="StaffApplyLeave" component={ComingSoon} />
-      <Stack.Screen name="StaffPayslip" component={ComingSoon} />
-      <Stack.Screen name="StaffHomeworkBot" component={ComingSoon} />
-      <Stack.Screen name="StaffTeacherProfile" component={ComingSoon} />
-      <Stack.Screen name="StaffTimetable" component={ComingSoon} />
-      <Stack.Screen name="StaffStudentList" component={ComingSoon} />
-      <Stack.Screen name="StaffNotifications" component={ComingSoon} />
-      <Stack.Screen name="StaffBroadcast" component={ComingSoon} />
+      <Stack.Screen name="StaffCreateHomework" component={StaffCreateHomeworkScreen} />
+      <Stack.Screen name="StaffSubmissions" component={StaffSubmissionsScreen} />
+      <Stack.Screen name="StaffMarksEntry" component={StaffMarksEntryScreen} />
+      <Stack.Screen name="StaffApplyLeave" component={StaffApplyLeaveScreen} />
+      <Stack.Screen name="StaffPayslip" component={StaffPayslipScreen} />
+      <Stack.Screen name="StaffHomeworkBot" component={StaffHomeworkBotScreen} />
+      <Stack.Screen name="StaffTeacherProfile" component={StaffTeacherProfileScreen} />
+      <Stack.Screen name="StaffTimetable" component={StaffTimetableScreen} />
+      <Stack.Screen name="StaffStudentList" component={StaffStudentListScreen} />
+      <Stack.Screen name="StaffNotifications" component={StaffNotificationsScreen} />
+      <Stack.Screen name="StaffBroadcast" component={StaffBroadcastScreen} />
       <Stack.Screen name="StaffChat" component={ChatScreen} />
       <Stack.Screen name="StaffAnnouncements" component={AnnouncementsScreen} />
       <Stack.Screen name="StaffAttendance" component={ComingSoon} />
-      <Stack.Screen name="StaffHomework" component={ComingSoon} />
+      <Stack.Screen name="StaffHomework" component={StaffHomeworkScreen} />
     </Stack.Navigator>
   );
 }
@@ -291,4 +292,6 @@ function ComingSoon({ route }: any) {
     </SafeAreaView>
   );
 }
+
+
 
