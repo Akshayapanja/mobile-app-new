@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getUser } from '../../lib/session';
 import { CHILDREN } from '../../lib/mockData';
+import { parentService } from '../../services';
 
 const PENDING = [
   { name: 'Term 2 Tuition Fee', amount: 3000, due: 'April 30 2025' },
@@ -27,6 +28,17 @@ export default function Fees() {
   React.useEffect(() => {
     let mounted = true;
     async function load() {
+      try {
+        const u = await getUser();
+        const firstId = (u as any)?.childIds?.[0] || 'c1';
+        const response = await parentService.getFeeInvoices(firstId);
+        if ((response as any)?.data) {
+          console.log('Fees loaded from API');
+        }
+      } catch (err: any) {
+        console.log('API not connected, using mock data:', err?.message ?? String(err));
+      }
+
       const u = await getUser();
       const firstId = u?.childIds?.[0] || 'c1';
       const c = CHILDREN[firstId];

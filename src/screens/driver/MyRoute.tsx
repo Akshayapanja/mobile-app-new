@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { driverService } from '../../services';
 
 type Nav = { goBack: () => void };
 
@@ -10,6 +11,21 @@ type Stop = { id: string; name: string; time: string; students: string; isLast?:
 
 export default function DriverMyRouteScreen() {
   const navigation = useNavigation<Nav>();
+
+  useEffect(() => {
+    loadRoute();
+  }, []);
+
+  const loadRoute = async () => {
+    try {
+      const response = await driverService.getMyRoute();
+      if ((response as any)?.data || response) {
+        console.log('Route loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const stops: Stop[] = useMemo(
     () => [

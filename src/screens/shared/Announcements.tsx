@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
+import { parentService } from '../../services';
 
 type Role = 'parent' | 'staff';
 type Announcement = {
@@ -151,6 +152,21 @@ export default function Announcements() {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    loadAnnouncements();
+  }, []);
+
+  const loadAnnouncements = async () => {
+    try {
+      const response = await parentService.getAnnouncements();
+      if ((response as any)?.data || response) {
+        console.log('Announcements loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const filters = useMemo(() => {
     return role === 'parent' ? (['All', 'Academic', 'Events', 'General'] as const) : (['All', 'Academic', 'Events', 'General'] as const);

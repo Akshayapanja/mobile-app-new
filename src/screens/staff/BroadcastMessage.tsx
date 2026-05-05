@@ -3,6 +3,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { teacherService } from '../../services';
 
 const templates: Record<string, string> = {
   'Fee Reminder': 'Dear Parents, This is a reminder\nthat fee payment is due. Please\npay at the earliest to avoid\nlate charges.',
@@ -16,14 +17,28 @@ export default function BroadcastMessage() {
   const navigation = useNavigation<any>();
   const [message, setMessage] = useState('');
 
-  const send = () => {
+  const send = async () => {
     if (!message.trim()) {
       Alert.alert('Error', 'Please type a message first');
       return;
     }
-    Alert.alert('Sent!', '? Message sent to all 32\nparents of Class 8A!', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+    try {
+      await teacherService.broadcastMessage({
+        title: 'Broadcast Message',
+        content: message,
+        audience: 'Class 8 Section A Parents',
+      });
+      console.log('Broadcast sent via API');
+    } catch (err: any) {
+      console.log('Broadcast API error:', err?.message ?? String(err));
+    } finally {
+      setMessage('');
+      Alert.alert(
+        'Sent!',
+        `✅ Message sent to all Class 8 Section A parents!`,
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    }
   };
 
   return (

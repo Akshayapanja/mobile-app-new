@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { driverService } from '../../services';
 
 type Nav = { goBack: () => void };
 
@@ -25,6 +26,21 @@ const STATUS_STYLES: Record<Status, { bg: string; fg: string }> = {
 
 export default function DriverStudentListScreen() {
   const navigation = useNavigation<Nav>();
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  const loadStudents = async () => {
+    try {
+      const response = await driverService.getStudentsOnRoute();
+      if ((response as any)?.data || response) {
+        console.log('Students loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const students: Student[] = useMemo(
     () => [

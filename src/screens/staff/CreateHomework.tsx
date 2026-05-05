@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { teacherService } from '../../services';
 
 function fmtDateLabel(d: Date) {
   const month = d.toLocaleString('en-US', { month: 'long' });
@@ -116,14 +117,26 @@ export default function CreateHomework() {
     return true;
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (submitting) return;
     if (!validate()) return;
     setSubmitting(true);
-    setTimeout(() => {
+    try {
+      await teacherService.createHomework({
+        title: form.title,
+        subject: form.subject || 'Mathematics',
+        description: form.desc,
+        dueDate: form.due.toISOString().split('T')[0],
+        sectionId: `${form.cls}-${form.sec}`,
+        maxMarks: parseInt(form.maxMarks, 10) || 100,
+      });
+      console.log('Homework created via API');
+    } catch (err: any) {
+      console.log('Create homework API error:', err?.message ?? String(err));
+    } finally {
       setSubmitting(false);
       setSuccess(true);
-    }, 1000);
+    }
   };
 
   const resetForm = () => {

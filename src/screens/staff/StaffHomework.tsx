@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getSentHomework, SentHomework } from '../../lib/session';
+import { teacherService } from '../../services';
 
 type HwCard = {
   id: string;
@@ -144,6 +145,22 @@ export default function StaffHomework() {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    loadHomework();
+  }, [cls, sec]);
+
+  const loadHomework = async () => {
+    try {
+      const sectionId = `${cls}-${sec}`;
+      const response = await teacherService.getHomework(sectionId);
+      if ((response as any)?.data || response) {
+        console.log('Homework loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const openClassPicker = useCallback(() => {
     Alert.alert('Class', 'Choose class', [

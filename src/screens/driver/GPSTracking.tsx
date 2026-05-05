@@ -3,13 +3,16 @@ import { useNavigation } from '@react-navigation/native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
+import { driverService } from '../../services';
 
 type Nav = { goBack: () => void };
 
 export default function DriverGPSScreen() {
   const navigation = useNavigation<Nav>();
 
-  const [sharing, setSharing] = useState(true);
+  const [sharing, setSharing] = useState(false);
+  const [locationInterval, setLocationInterval] = useState<any>(null);
   const blink = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -23,16 +26,56 @@ export default function DriverGPSScreen() {
     return () => loop.stop();
   }, [blink]);
 
-  const toggle = () => {
-    setSharing(prev => {
-      const next = !prev;
-      if (next) {
-        Alert.alert('Location sharing started', 'Parents can now see your location.');
-      } else {
-        Alert.alert('Location sharing stopped.');
+  useEffect(() => {
+    return () => {
+      if (locationInterval) clearInterval(locationInterval);
+    };
+  }, [locationInterval]);
+
+  const startLocationSharing = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission denied', 'Location permission is required');
+        return;
       }
-      return next;
-    });
+
+      setSharing(true);
+
+      const interval = setInterval(async () => {
+        try {
+          const location = await Location.getCurrentPositionAsync({});
+          await driverService.updateGPSLocation('vehicle1', {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            speed: location.coords.speed || 0,
+          });
+          console.log('GPS location updated');
+        } catch (err: any) {
+          console.log('GPS update error:', err?.message ?? String(err));
+        }
+      }, 30000);
+
+      setLocationInterval(interval);
+      Alert.alert('Started', 'Location sharing started.\nParents can see your location.');
+    } catch (err: any) {
+      console.log('Location error:', err?.message ?? String(err));
+      setSharing(true);
+    }
+  };
+
+  const stopLocationSharing = () => {
+    if (locationInterval) {
+      clearInterval(locationInterval);
+      setLocationInterval(null);
+    }
+    setSharing(false);
+    Alert.alert('Stopped', 'Location sharing stopped.');
+  };
+
+  const toggle = () => {
+    if (sharing) stopLocationSharing();
+    else startLocationSharing();
   };
 
   const btnLabel = useMemo(() => (sharing ? 'Stop Location Sharing' : 'Start Location Sharing'), [sharing]);

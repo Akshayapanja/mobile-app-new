@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { teacherService } from '../../services';
 
 type NItem = {
   icon: string;
@@ -38,6 +39,21 @@ export default function StaffNotifications() {
   const [allRead, setAllRead] = useState(false);
 
   const todayRows = useMemo(() => TODAY.map(item => ({ ...item, unread: allRead ? false : item.unread })), [allRead]);
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      const response = await teacherService.getNotifications();
+      if ((response as any)?.data || response) {
+        console.log('Notifications loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>

@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getUser } from '../../lib/session';
 import { type Child } from '../../lib/mockData';
+import { parentService } from '../../services';
 
 type ChildCard = Child & { navChildId: string };
 
@@ -72,6 +73,15 @@ export default function Children() {
 
     async function load() {
       try {
+        try {
+          const response = await parentService.getChildren();
+          if ((response as any)?.data?.length > 0) {
+            console.log('Children loaded from API');
+          }
+        } catch (err: any) {
+          console.log('API not connected, using mock data:', err?.message ?? String(err));
+        }
+
         const u = await getUser();
         const phone = (u as any)?.phone || (u as any)?.phoneNumber || (u as any)?.mobile || '';
         const list = (CHILDREN_BY_PHONE[String(phone)] || []).map((c, idx) => ({

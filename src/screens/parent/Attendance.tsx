@@ -1,13 +1,15 @@
 // ✅ Converted from React Web → React Native
 
-import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 
 import { CHILDREN } from '../../lib/mockData';
+import { getUser } from '../../lib/session';
+import { parentService } from '../../services';
 
 type CellType = 'present' | 'absent' | 'leave' | 'holiday' | 'upcoming';
 type Cell = { day: number | null; type?: CellType };
@@ -32,11 +34,38 @@ export default function Attendance() {
   const navigation = useNavigation<any>();
   const child = CHILDREN.c1; // Arjun Kumar (mock)
 
+  const [attendanceData, setAttendanceData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [monthOffset, setMonthOffset] = useState(0); // 0 = April 2025
   const current = new Date(BASE.getFullYear(), BASE.getMonth() + monthOffset, 1);
   const year = current.getFullYear();
   const monthIndex = current.getMonth();
   const monthLabel = current.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+  useEffect(() => {
+    loadAttendance();
+  }, []);
+
+  const loadAttendance = async () => {
+    try {
+      const user = await getUser();
+      const childId = (user as any)?.childIds?.[0] || 'c1';
+      const [attendance, stats] = await Promise.all([
+        parentService.getAttendance({ studentId: childId }),
+        parentService.getAttendanceStats({ studentId: childId }),
+      ]);
+      setAttendanceData({
+        records: (attendance as any)?.data || attendance,
+        stats: (stats as any)?.data || stats,
+      });
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // Keep existing mock UI as fallback
+      setAttendanceData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const typeForDay = (d: number): CellType => {
     // May 2025 (next month): all upcoming
@@ -74,6 +103,11 @@ export default function Attendance() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      {loading ? (
+        <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color="#4A90D9" />
+        </View>
+      ) : (
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topNav}>
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.85} style={styles.topNavBtn}>
@@ -214,6 +248,7 @@ export default function Attendance() {
           </View>
         </View>
       </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

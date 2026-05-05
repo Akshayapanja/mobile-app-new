@@ -1,11 +1,13 @@
 // ✅ Converted from React Web → React Native
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
+import { getUser } from '../../lib/session';
+import { parentService } from '../../services';
 
 type Exam = 'Unit Test 1' | 'Mid Term' | 'Unit Test 2' | 'Final Exam';
 
@@ -27,6 +29,23 @@ export default function Results() {
   const [exam, setExam] = useState<Exam>('Mid Term');
 
   const exams: Exam[] = ['Unit Test 1', 'Mid Term', 'Unit Test 2', 'Final Exam'];
+
+  useEffect(() => {
+    loadResults();
+  }, []);
+
+  const loadResults = async () => {
+    try {
+      const user = await getUser();
+      const childId = (user as any)?.childIds?.[0] || 'c1';
+      const response = await parentService.getResults(childId);
+      if ((response as any)?.data || response) {
+        console.log('Results loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const subjects: SubjectResult[] = useMemo(
     () => [

@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { parentService } from '../../services';
 
 type CalEventType = 'event' | 'holiday' | 'exam' | 'meeting';
 type CalEvent = { day: number; label: string; type: CalEventType };
@@ -64,6 +65,21 @@ function EventCard({
 export default function AcademicCalendar() {
   const navigation = useNavigation<any>();
   const [monthOffset, setMonthOffset] = useState(0); // 0 = April 2025
+
+  useEffect(() => {
+    loadCalendar();
+  }, []);
+
+  const loadCalendar = async () => {
+    try {
+      const response = await parentService.getCalendar();
+      if ((response as any)?.data || response) {
+        console.log('Calendar loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const monthLabel = useMemo(() => monthLabelForOffset(monthOffset), [monthOffset]);
   const meta = useMemo(() => monthMetaForOffset(monthOffset), [monthOffset]);

@@ -7,6 +7,7 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
 import { CHILDREN, USERS } from '../../lib/mockData';
+import { parentService } from '../../services';
 
 type Nav = {
   navigate: (
@@ -41,6 +42,8 @@ export default function ParentDashboard() {
   const navigation = useNavigation<Nav>();
   const parentNav = navigation.getParent?.();
 
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [parentName, setParentName] = useState('');
   const [parentPhone, setParentPhone] = useState('');
   const [children, setChildren] = useState<ChildCard[]>([]);
@@ -77,11 +80,27 @@ export default function ParentDashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      const response = await parentService.getDashboard();
+      setDashboardData((response as any)?.data || response);
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // keep existing mock UI as fallback
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const firstName = useMemo(() => {
-    const n = parentName.trim();
+    const n = String((dashboardData as any)?.parentName || (dashboardData as any)?.name || parentName).trim();
     if (!n) return '';
     return n.split(' ')[0] || n;
-  }, [parentName]);
+  }, [dashboardData, parentName]);
 
   const announcements = useMemo(
     () => [

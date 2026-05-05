@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
+import { parentService, teacherService } from '../../services';
 
 type Role = 'parent' | 'staff';
 
@@ -154,6 +155,27 @@ export default function Messages() {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    loadConversations();
+  }, [role]);
+
+  const loadConversations = async () => {
+    try {
+      const user = await getUser();
+      let response: any;
+      if ((user as any)?.role === 'staff') {
+        response = await teacherService.getConversations();
+      } else {
+        response = await parentService.getConversations();
+      }
+      if ((response as any)?.data || response) {
+        console.log('Conversations loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const conversations = role === 'parent' ? PARENT_CONVERSATIONS : STAFF_CONVERSATIONS;
   const convFiltered = useMemo(

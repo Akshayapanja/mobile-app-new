@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getSentHomework } from '../../lib/session';
+import { parentService } from '../../services';
 
 type Filter = 'All' | 'Pending' | 'Submitted' | 'Overdue';
 type HWStatus = 'Pending' | 'Submitted' | 'Overdue';
@@ -81,6 +82,21 @@ export default function Homework() {
   const navigation = useNavigation<any>();
   const [filter, setFilter] = useState<Filter>('All');
   const [teacherHw, setTeacherHw] = useState<HomeworkItem | null>(null);
+
+  useEffect(() => {
+    loadHomework();
+  }, []);
+
+  const loadHomework = async () => {
+    try {
+      const response = await parentService.getHomework('section1');
+      if ((response as any)?.data || response) {
+        console.log('Homework loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   useEffect(() => {
     let mounted = true;

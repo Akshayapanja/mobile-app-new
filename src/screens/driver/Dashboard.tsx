@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { driverService } from '../../services';
 
 type Nav = {
   navigate: (
@@ -18,6 +19,19 @@ type Nav = {
 
 export default function DriverDashboardScreen() {
   const navigation = useNavigation<Nav>();
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      await Promise.all([driverService.getTransportStats(), driverService.getMyRoute()]);
+      console.log('Driver dashboard loaded from API');
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const driverName = 'Ravi Driver';
   const driverRole = 'Bus Driver';

@@ -64,6 +64,26 @@ export default function Profile() {
     };
   }, [navigation]);
 
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const response = await authService.getMe();
+      const profileData = (response as any)?.data || response;
+      if (profileData) {
+        setUser(prev => ({
+          ...(prev || ({} as any)),
+          ...(profileData as any),
+        }));
+        console.log('Profile loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
+
   const initials = useMemo(() => initialsFromName(user?.name || ''), [user?.name]);
   const canSwitchRole = useMemo(() => Array.isArray((user as any)?.roles) && (user as any).roles.length > 1, [user]);
 

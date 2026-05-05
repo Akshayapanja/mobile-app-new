@@ -1,10 +1,11 @@
 // ✅ Converted from React Web → React Native
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { parentService } from '../../services';
 
 type RouteStop = {
   id: string;
@@ -24,6 +25,21 @@ function InfoRow({ label, value, valueColor }: { label: string; value: string; v
 
 export default function BusTracking() {
   const navigation = useNavigation<any>();
+
+  useEffect(() => {
+    loadTracking();
+  }, []);
+
+  const loadTracking = async () => {
+    try {
+      const response = await parentService.getLiveTracking();
+      if ((response as any)?.data || response) {
+        console.log('Tracking loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const stops: RouteStop[] = [
     { id: 's1', name: 'Kondapur Main Road', time: '7:15 AM', status: 'done' },

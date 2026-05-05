@@ -7,6 +7,7 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
 import { USERS } from '../../lib/mockData';
+import { teacherService } from '../../services';
 
 type Nav = {
   navigate: (
@@ -40,6 +41,21 @@ const ICONS = {
 
 export default function StaffDashboard() {
   const navigation = useNavigation<Nav>();
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      const response = await teacherService.getDashboard();
+      if ((response as any)?.data || response) {
+        console.log('Teacher dashboard loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const [name, setName] = useState('');
   const [designation, setDesignation] = useState('');

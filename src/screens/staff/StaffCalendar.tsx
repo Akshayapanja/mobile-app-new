@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { teacherService } from '../../services';
 
 type CellType = 'event' | 'holiday' | 'exam' | 'meeting' | 'deadline' | 'none';
 type Cell = { day: number | null; type: CellType };
@@ -22,6 +23,21 @@ function buildCells(year: number, monthIndex: number, typeForDay: (day: number) 
 export default function StaffCalendar() {
   const navigation = useNavigation<any>();
   const [monthOffset, setMonthOffset] = useState(0);
+
+  useEffect(() => {
+    loadCalendar();
+  }, []);
+
+  const loadCalendar = async () => {
+    try {
+      const response = await teacherService.getCalendar();
+      if ((response as any)?.data || response) {
+        console.log('Calendar loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const current = useMemo(
     () => new Date(BASE.getFullYear(), BASE.getMonth() + monthOffset, 1),

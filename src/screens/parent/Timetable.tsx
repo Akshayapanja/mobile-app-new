@@ -1,10 +1,11 @@
 // ✅ Converted from React Web → React Native
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { parentService } from '../../services';
 
 type Status = 'Ongoing' | 'Done' | 'Upcoming';
 type Period = {
@@ -36,6 +37,21 @@ function pillStyle(status: Status) {
 export default function Timetable() {
   const navigation = useNavigation<any>();
   const [activeDay, setActiveDay] = useState<(typeof DAYS)[number]['key']>('Mon');
+
+  useEffect(() => {
+    loadTimetable();
+  }, []);
+
+  const loadTimetable = async () => {
+    try {
+      const response = await parentService.getTimetable('section1');
+      if ((response as any)?.data || response) {
+        console.log('Timetable loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const periodsByDay = useMemo<Record<string, Period[]>>(
     () => ({

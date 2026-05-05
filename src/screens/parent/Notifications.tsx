@@ -1,10 +1,11 @@
 // ✅ Converted from React Web → React Native
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { parentService } from '../../services';
 
 type NotificationItem = {
   id: string;
@@ -102,6 +103,21 @@ export default function Notifications() {
   const [today, setToday] = useState<NotificationItem[]>(initial.today);
   const [yesterday, setYesterday] = useState<NotificationItem[]>(initial.yesterday);
   const [earlier, setEarlier] = useState<NotificationItem[]>(initial.earlier);
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      const response = await parentService.getNotifications();
+      if ((response as any)?.data || response) {
+        console.log('Notifications loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const unreadCount = useMemo(
     () =>

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { driverService } from '../../services';
 
 type Nav = { goBack: () => void };
 
@@ -79,6 +80,21 @@ export default function DriverNotificationsScreen() {
   const [items, setItems] = useState<Notice[]>(initial);
 
   const markAllRead = () => setItems(prev => prev.map(n => ({ ...n, unread: false })));
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      const response = await driverService.getNotifications();
+      if ((response as any)?.data || response) {
+        console.log('Notifications loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
 
   const grouped = useMemo(() => {
     const today = items.filter(i => i.section === 'TODAY');

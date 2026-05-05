@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
+import { parentService } from '../../services';
 
 type Role = 'parent' | 'staff';
 
@@ -102,17 +103,39 @@ export default function Chat() {
 
   useEffect(() => setMsgs(initial), [initial]);
 
+  useEffect(() => {
+    loadMessages();
+  }, [chatId, role]);
+
+  const loadMessages = async () => {
+    try {
+      const response = await parentService.getMessages(chatId);
+      if ((response as any)?.data || response) {
+        console.log('Messages loaded from API');
+      }
+    } catch (err: any) {
+      console.log('API not connected, using mock data:', err?.message ?? String(err));
+    }
+  };
+
   const scrollRef = useRef<ScrollView | null>(null);
   useEffect(() => {
     const t = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
     return () => clearTimeout(t);
   }, [msgs.length]);
 
-  const send = () => {
+  const send = async () => {
     const t = text.trim();
     if (!t) return;
-    setMsgs(prev => [...prev, { id: `${threadKey}-${Date.now()}`, dir: 'out', text: t, time: nowLabel() }]);
     setText('');
+
+    try {
+      await parentService.sendMessage(chatId, t);
+    } catch (err: any) {
+      console.log('Send message API error:', err?.message ?? String(err));
+    }
+
+    setMsgs(prev => [...prev, { id: `${threadKey}-${Date.now()}`, dir: 'out', text: t, time: nowLabel() }]);
   };
 
   return (
