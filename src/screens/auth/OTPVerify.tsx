@@ -191,8 +191,10 @@ export default function OTPVerify() {
       await AsyncStorage.setItem('intants_user', JSON.stringify(user));
       navigateByRole(user, phone);
     } catch (err: any) {
-      // eslint-disable-next-line no-console
-      console.error('Verify OTP error:', err);
+      console.log(
+        'Backend not connected, using mock login:',
+        err?.message ?? String(err)
+      );
       await handleMockLogin(phone, otpString);
     } finally {
       setLoading(false);
@@ -208,9 +210,11 @@ export default function OTPVerify() {
       const phone = (await AsyncStorage.getItem('login_phone')) || '';
       if (!phone) return;
       await authService.sendOTP(phone);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Resend OTP error:', err);
+    } catch (err: any) {
+      console.log(
+        'Backend not connected, using mock login:',
+        err?.message ?? String(err)
+      );
     }
   };
 

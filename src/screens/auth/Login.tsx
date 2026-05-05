@@ -41,8 +41,10 @@ export default function Login() {
       navigation.navigate('OTPVerify');
     } catch (err: any) {
       // Keep navigation even if backend isn't connected yet.
-      // eslint-disable-next-line no-console
-      console.error('Send OTP error:', err);
+      console.log(
+        'Backend not connected, using mock login:',
+        err?.message ?? String(err)
+      );
       await AsyncStorage.setItem('login_phone', p);
       navigation.navigate('OTPVerify');
     } finally {

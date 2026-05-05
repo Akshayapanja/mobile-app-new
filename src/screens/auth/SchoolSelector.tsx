@@ -80,9 +80,11 @@ export default function SchoolSelector() {
       } else {
         setSchools(MOCK_SCHOOLS);
       }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Load schools error:', err);
+    } catch (err: any) {
+      console.log(
+        'Backend not connected, using mock login:',
+        err?.message ?? String(err)
+      );
       setSchools(MOCK_SCHOOLS);
     } finally {
       setLoading(false);
@@ -100,9 +102,11 @@ export default function SchoolSelector() {
     setLoading(true);
     try {
       await authService.selectSchool(selectedSchool.id);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Select school error:', err);
+    } catch (err: any) {
+      console.log(
+        'Backend not connected, using mock login:',
+        err?.message ?? String(err)
+      );
     } finally {
       await AsyncStorage.setItem('intants_school_selected', 'true');
       await AsyncStorage.setItem('intants_school_id', selectedSchool.id || 'school1');

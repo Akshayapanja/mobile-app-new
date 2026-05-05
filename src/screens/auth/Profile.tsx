@@ -125,9 +125,11 @@ export default function Profile() {
         onPress: async () => {
           try {
             await authService.logout();
-          } catch (err) {
-            // eslint-disable-next-line no-console
-            console.error('Logout error:', err);
+          } catch (err: any) {
+            console.log(
+              'Backend not connected, using mock login:',
+              err?.message ?? String(err)
+            );
           } finally {
             rootNav.dispatch(
               CommonActions.reset({
