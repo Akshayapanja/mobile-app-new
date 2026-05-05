@@ -108,6 +108,7 @@ function ParentStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ParentTabs" component={ParentTabNavigator} />
+      <Stack.Screen name="RoleSelect" component={RoleSelect} />
       <Stack.Screen name="ParentChildren" component={ParentChildrenScreen} />
       <Stack.Screen name="ParentChildProfile" component={ParentChildProfileScreen} />
       <Stack.Screen name="ParentAttendance" component={ParentAttendanceScreen} />
@@ -172,6 +173,7 @@ function StaffStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="StaffTabs" component={StaffTabNavigator} />
+      <Stack.Screen name="RoleSelect" component={RoleSelect} />
       <Stack.Screen name="StaffCreateHomework" component={StaffCreateHomeworkScreen} />
       <Stack.Screen name="StaffSubmissions" component={StaffSubmissionsScreen} />
       <Stack.Screen name="StaffMarksEntry" component={StaffMarksEntryScreen} />

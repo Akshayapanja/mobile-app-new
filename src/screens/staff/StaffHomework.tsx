@@ -126,6 +126,7 @@ function ProgressBarRow({ value, color }: { value: number; color: string }) {
 
 export default function StaffHomework() {
   const navigation = useNavigation<any>();
+  const canGoBack = navigation.canGoBack();
   const [cls, setCls] = useState('8');
   const [sec, setSec] = useState('A');
   const [sent, setSent] = useState<SentHomework[]>([]);
@@ -151,6 +152,16 @@ export default function StaffHomework() {
     ]);
   }, []);
 
+  const openSectionPicker = useCallback(() => {
+    Alert.alert('Select Section', '', [
+      { text: 'A', onPress: () => setSec('A') },
+      { text: 'B', onPress: () => setSec('B') },
+      { text: 'C', onPress: () => setSec('C') },
+      { text: 'D', onPress: () => setSec('D') },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  }, []);
+
   const filteredBase = useMemo(
     () => BASE.filter(h => h.cls === cls && h.sec === sec),
     [cls, sec]
@@ -165,7 +176,13 @@ export default function StaffHomework() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topNav}>
-          <View style={styles.topNavSpacer} />
+          {canGoBack ? (
+            <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.85} style={styles.topNavBtn}>
+              <Ionicons name="arrow-back" size={22} color="#111827" />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.topNavSpacer} />
+          )}
           <Text style={styles.topNavTitle}>Homework</Text>
           <TouchableOpacity
             activeOpacity={0.9}
@@ -181,7 +198,7 @@ export default function StaffHomework() {
             <Text style={styles.dropdownValue}>Class {cls}</Text>
             <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.9} style={styles.dropdown} onPress={() => Alert.alert('Section', `Class ${cls} has only Section ${CLASS_TO_SECTION[cls]}`)}>
+          <TouchableOpacity activeOpacity={0.9} style={styles.dropdown} onPress={openSectionPicker}>
             <Text style={styles.dropdownValue}>Section {sec}</Text>
             <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
           </TouchableOpacity>
@@ -273,6 +290,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
   },
+  topNavBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   topNavSpacer: { width: 36, height: 36 },
   topNavTitle: { fontSize: 18, fontWeight: '800', color: '#111827', textAlign: 'center', flex: 1 },
   addBtn: {

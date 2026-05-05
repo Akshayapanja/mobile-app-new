@@ -132,7 +132,28 @@ export default function CreateHomework() {
   };
 
   const goHomeworkList = () => {
-    navigation.navigate('StaffTabs', { screen: 'StaffHomeworkTab' });
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'Staff',
+          state: {
+            routes: [
+              {
+                name: 'StaffTabs',
+                state: {
+                  routes: [
+                    {
+                      name: 'StaffHomeworkTab',
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
   };
 
   return (

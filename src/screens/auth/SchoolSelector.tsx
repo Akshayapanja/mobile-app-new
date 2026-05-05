@@ -49,7 +49,6 @@ export default function SchoolSelector() {
       const u = await getUser();
       if (!mounted) return;
       if (!u) {
-        Alert.alert('Error', 'Please login again.');
         navigation.goBack();
         return;
       }

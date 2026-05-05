@@ -58,14 +58,6 @@ export default function Login() {
     }
   };
 
-  const onEmailLogin = () => {
-    Alert.alert('Info', 'Email login coming soon! Please use phone number to login.');
-  };
-
-  const onStaffLogin = () => {
-    Alert.alert('Info', 'Staff login coming soon! Please use phone number to login.');
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -114,21 +106,6 @@ export default function Login() {
               >
                 <Text style={styles.primaryBtnText}>{loading ? 'Sending...' : 'Send OTP'}</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={onEmailLogin}
-                activeOpacity={0.8}
-                style={styles.ghostBtn}
-              >
-                <Text style={styles.ghostBtnText}>Login with Email</Text>
-              </TouchableOpacity>
-
-              <View style={styles.staffRow}>
-                <Text style={styles.staffText}>Are you a staff member?</Text>
-                <TouchableOpacity onPress={onStaffLogin} activeOpacity={0.7}>
-                  <Text style={styles.staffLink}>Use Staff Login →</Text>
-                </TouchableOpacity>
-              </View>
             </View>
 
             <View style={styles.flexSpacer} />

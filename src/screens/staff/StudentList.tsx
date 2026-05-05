@@ -75,7 +75,14 @@ export default function StudentList() {
     ]);
   };
 
-  const pickSection = () => Alert.alert('Section', `Class ${selectedClass} has only Section ${CLASS_TO_SECTION[selectedClass]}`);
+  const pickSection = () =>
+    Alert.alert('Select Section', '', [
+      { text: 'A', onPress: () => setSelectedSection('A') },
+      { text: 'B', onPress: () => setSelectedSection('B') },
+      { text: 'C', onPress: () => setSelectedSection('C') },
+      { text: 'D', onPress: () => setSelectedSection('D') },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
 
   const toggleExpanded = (roll: string) => {
     setExpanded(prev => ({ ...prev, [roll]: !prev[roll] }));
@@ -157,9 +164,6 @@ export default function StudentList() {
                     <View style={styles.btnRow}>
                       <TouchableOpacity style={styles.msgBtn} activeOpacity={0.9} onPress={() => navigation.navigate('StaffChat', { chatId: getChatId(idx), studentName: s.name })}>
                         <Text style={styles.msgBtnText}>Send Message</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.wholeClassGhost} activeOpacity={0.9} onPress={() => Alert.alert('Sent', 'Message sent to all parents!')}>
-                        <Text style={styles.wholeClassGhostText}>Send to Whole Class</Text>
                       </TouchableOpacity>
                     </View>
                   </View>

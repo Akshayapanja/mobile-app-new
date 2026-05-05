@@ -22,6 +22,36 @@ type FacultyMember = {
 function FacultyCard({ m }: { m: FacultyMember }) {
   const navigation = useNavigation<any>();
 
+  const openFacultyChat = () => {
+    const chatId =
+      m.initials === 'RV' || m.name.includes('Rajesh')
+        ? '2'
+        : m.name.includes('Principal')
+          ? '3'
+          : '1';
+
+    let navRef: any = navigation;
+    while (navRef) {
+      const routeNames: string[] = navRef.getState?.()?.routeNames || [];
+      if (routeNames.includes('ParentChat')) {
+        navRef.navigate('ParentChat', { chatId });
+        return;
+      }
+      // If we're at the app root (Auth/Parent/Staff), navigate into Parent stack.
+      if (routeNames.includes('Parent')) {
+        navRef.navigate('Parent', {
+          screen: 'ParentChat',
+          params: { chatId },
+        });
+        return;
+      }
+      navRef = navRef.getParent?.();
+    }
+
+    // Fallback: at least open Messages screen (chat won't auto-open there)
+    navigation.getParent?.()?.navigate?.('Parent', { screen: 'ParentMessages' });
+  };
+
   return (
     <View style={styles.card}>
       <View style={styles.cardRow}>
@@ -54,7 +84,11 @@ function FacultyCard({ m }: { m: FacultyMember }) {
 
       <View style={styles.divider} />
 
-      <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('ParentMessages')} style={styles.sendRow}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={openFacultyChat}
+        style={styles.sendRow}
+      >
         <Text style={styles.sendText}>Send Message →</Text>
       </TouchableOpacity>
     </View>

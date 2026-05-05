@@ -53,7 +53,6 @@ export default function StaffDashboard() {
       if (!mounted) return;
 
       if (!u || u.role !== 'staff') {
-        Alert.alert('Error', 'Please login again.');
         return;
       }
 
@@ -224,7 +223,12 @@ export default function StaffDashboard() {
           {todaysClasses.map(item => {
             const isOngoing = (item?.status || '') === 'Ongoing';
             return (
-              <View key={item?.id || `${item?.className || 'class'}-${item?.time || ''}`} style={styles.periodCard}>
+              <TouchableOpacity
+                key={item?.id || `${item?.className || 'class'}-${item?.time || ''}`}
+                style={styles.periodCard}
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate('StaffTimetable')}
+              >
                 <View style={[styles.periodBar, isOngoing ? styles.barBlue : styles.barGray]} />
                 <View style={styles.periodBody}>
                   <View style={styles.periodTopRow}>
@@ -251,7 +255,7 @@ export default function StaffDashboard() {
                     {`${item?.time || ''}${item?.room ? ` | ${item?.room}` : ''}`}
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>

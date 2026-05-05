@@ -4,6 +4,7 @@ export interface User {
   phone: string;
   name: string;
   role: Role;
+  roles?: Role[];
   designation?: string;
   employeeId?: string;
   parentId?: string;
@@ -36,7 +37,7 @@ export const SCHOOL = {
 export const USERS: User[] = [
   { phone: '9800000001', name: 'Priya Kumar', role: 'parent', email: 'priya.kumar@email.com', parentId: 'PRT001', childIds: ['c1'] },
   { phone: '9800000002', name: 'Meena Sharma', role: 'parent', email: 'meena.sharma@email.com', parentId: 'PRT002', childIds: ['c2'] },
-  { phone: '9900000001', name: 'Mrs. Lakshmi Subramaniam', role: 'staff', designation: 'Mathematics Teacher', subject: 'Mathematics', email: 'lakshmi.s@dpshyd.edu', employeeId: 'EMP001' },
+  { phone: '9900000001', name: 'Mrs. Lakshmi Subramaniam', role: 'staff', roles: ['staff', 'parent'], designation: 'Mathematics Teacher', subject: 'Mathematics', email: 'lakshmi.s@dpshyd.edu', employeeId: 'EMP001' },
   { phone: '9900000002', name: 'Mr. Rajesh Venkataraman', role: 'staff', designation: 'Science Teacher', subject: 'Science', email: 'rajesh.v@dpshyd.edu', employeeId: 'EMP002' },
 ];
 

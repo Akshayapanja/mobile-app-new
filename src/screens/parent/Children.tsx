@@ -48,6 +48,7 @@ const CHILDREN_BY_PHONE: Record<string, Array<Omit<Child, 'id'> & { id: string }
 
 export default function Children() {
   const navigation = useNavigation<any>();
+  const canGoBack = navigation.canGoBack();
   const [loading, setLoading] = useState(true);
   const [kids, setKids] = useState<ChildCard[]>([]);
   const navigateToParentScreen = (screenName: string, params?: any) => {
@@ -104,7 +105,13 @@ export default function Children() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
-          <View style={styles.headerSideSpacer} />
+          {canGoBack ? (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8 }}>
+              <Ionicons name="arrow-back" size={24} color="#1F2937" />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.headerSideSpacer} />
+          )}
 
           <Text style={styles.headerTitle}>My Children</Text>
 

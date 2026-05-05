@@ -61,7 +61,6 @@ export default function ParentDashboard() {
       if (!mounted) return;
 
       if (!u || u.role !== 'parent') {
-        Alert.alert('Error', 'Please login again.');
         return;
       }
 
@@ -83,21 +82,6 @@ export default function ParentDashboard() {
     if (!n) return '';
     return n.split(' ')[0] || n;
   }, [parentName]);
-
-  const showEmergency = () => {
-    Alert.alert('🚨 Emergency Alert', 'Select emergency type:', [
-      {
-        text: 'Medical Emergency',
-        onPress: () =>
-          Alert.alert('Sent', 'Emergency alert sent! School will call within 5 minutes.'),
-      },
-      {
-        text: 'Safety Concern',
-        onPress: () => Alert.alert('Sent', 'Emergency alert sent!'),
-      },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
 
   const announcements = useMemo(
     () => [
@@ -152,7 +136,10 @@ export default function ParentDashboard() {
 
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>My Children</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Children' as never)} activeOpacity={0.7}>
+          <TouchableOpacity
+            onPress={() => navigation.getParent?.()?.navigate('ParentChildren')}
+            activeOpacity={0.7}
+          >
             <Text style={styles.seeAll}>See All →</Text>
           </TouchableOpacity>
         </View>
@@ -213,7 +200,7 @@ export default function ParentDashboard() {
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => parentNav?.navigate('ParentFees')}
-              style={[styles.actionCard, styles.actionBlue]}
+              style={[styles.actionCard, styles.actionBlue, styles.actionHalf]}
             >
               <Text style={styles.actionEmoji}>💰</Text>
               <Text style={styles.actionTitle}>Pay Fees</Text>
@@ -223,21 +210,11 @@ export default function ParentDashboard() {
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => parentNav?.navigate('ParentApplyLeave')}
-              style={[styles.actionCard, styles.actionGreen]}
+              style={[styles.actionCard, styles.actionGreen, styles.actionHalf]}
             >
               <Text style={styles.actionEmoji}>📅</Text>
               <Text style={styles.actionTitle}>Apply Leave</Text>
               <Text style={styles.actionSub}>For your child</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={showEmergency}
-              style={[styles.actionCard, styles.actionAmber]}
-            >
-              <Text style={styles.actionEmoji}>🚨</Text>
-              <Text style={styles.actionTitle}>Emergency</Text>
-              <Text style={styles.actionSub}>Send Alert</Text>
             </TouchableOpacity>
           </View>
 
@@ -496,6 +473,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '32%',
+  },
+  actionHalf: {
+    width: '48.5%',
   },
   actionWide: {
     width: '48.5%',

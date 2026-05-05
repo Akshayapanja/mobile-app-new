@@ -135,6 +135,7 @@ const STAFF_CONTACTS: Contact[] = [
 export default function Messages() {
   const navigation = useNavigation<any>();
   const parentNav = navigation.getParent?.();
+  const canGoBack = navigation.canGoBack();
   const [role, setRole] = useState<Role>('parent');
   const [q, setQ] = useState('');
   const [composeOpen, setComposeOpen] = useState(false);
@@ -174,7 +175,15 @@ export default function Messages() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
+        {canGoBack ? (
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8 }}>
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 40 }} />
+        )}
         <Text style={styles.headerTitle}>Messages</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -400,7 +409,14 @@ export default function Messages() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 6 },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827', textAlign: 'center' },
   container: { paddingHorizontal: 20, paddingTop: 8 },
 

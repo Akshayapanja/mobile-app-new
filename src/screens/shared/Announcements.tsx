@@ -136,6 +136,7 @@ const STAFF_ANNOUNCEMENTS: Announcement[] = [
 
 export default function Announcements() {
   const navigation = useNavigation<any>();
+  const canGoBack = navigation.canGoBack();
   const [role, setRole] = useState<Role>('parent');
   const [filter, setFilter] = useState<'All' | 'Academic' | 'Events' | 'General' | 'Finance' | 'Exams'>('All');
 
@@ -162,7 +163,13 @@ export default function Announcements() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.topNav}>
-          <View style={{ width: 40 }} />
+          {canGoBack ? (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8 }}>
+              <Ionicons name="arrow-back" size={24} color="#1F2937" />
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 40 }} />
+          )}
           <Text style={styles.title}>Announcements</Text>
           <TouchableOpacity
             onPress={() => {

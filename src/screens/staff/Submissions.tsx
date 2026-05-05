@@ -80,11 +80,10 @@ export default function Submissions() {
                 <TextInput
                   value={row.grade}
                   onChangeText={v => setGrade(idx, v)}
-                  editable={row.submitted}
                   keyboardType="numeric"
                   placeholder="Grade"
                   placeholderTextColor="#9CA3AF"
-                  style={[styles.gradeInput, !row.submitted ? styles.gradeInputDisabled : null]}
+                  style={styles.gradeInput}
                 />
               </View>
             </View>
@@ -147,7 +146,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     backgroundColor: '#FFFFFF',
   },
-  gradeInputDisabled: { backgroundColor: '#F3F4F6', color: '#9CA3AF' },
 
   saveBtn: { height: 52, borderRadius: 50, backgroundColor: '#4A90D9', alignItems: 'center', justifyContent: 'center' },
   saveText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },

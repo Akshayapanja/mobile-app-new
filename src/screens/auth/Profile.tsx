@@ -10,6 +10,7 @@ type UserShape = {
   phone: string;
   email?: string;
   role?: string;
+  roles?: string[];
   designation?: string;
   employeeId?: string;
 };
@@ -63,6 +64,56 @@ export default function Profile() {
   }, [navigation]);
 
   const initials = useMemo(() => initialsFromName(user?.name || ''), [user?.name]);
+  const canSwitchRole = useMemo(() => Array.isArray((user as any)?.roles) && (user as any).roles.length > 1, [user]);
+
+  const switchRole = async () => {
+    const nextRole = (user as any)?.role === 'staff' ? 'parent' : 'staff';
+
+    try {
+      const raw = await AsyncStorage.getItem('intants_user');
+      if (raw) {
+        const parsed = JSON.parse(raw) as any;
+        const roles =
+          Array.isArray(parsed?.roles) && parsed.roles.length > 0
+            ? parsed.roles
+            : parsed?.phone === '9900000001'
+              ? (['staff', 'parent'] as const)
+              : ([parsed?.role].filter(Boolean) as any[]);
+
+        await AsyncStorage.setItem(
+          'intants_user',
+          JSON.stringify({
+            ...parsed,
+            roles,
+            role: nextRole,
+          })
+        );
+      }
+    } catch {
+      // ignore: still attempt navigation reset
+    }
+
+    // Reset from the app root navigator so screens match the role.
+    let navRef: any = navigation;
+    while (navRef) {
+      const routeNames: string[] = navRef.getState?.()?.routeNames || [];
+      if (routeNames.includes('Parent') && routeNames.includes('Staff')) {
+        navRef.reset({
+          index: 0,
+          routes: [
+            {
+              name: nextRole === 'parent' ? 'Parent' : 'Staff',
+              state: {
+                routes: [{ name: nextRole === 'parent' ? 'ParentTabs' : 'StaffTabs' }],
+              },
+            },
+          ],
+        });
+        return;
+      }
+      navRef = navRef.getParent?.();
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -90,6 +141,16 @@ export default function Profile() {
           )}
           <InfoRow icon="📅" label="Academic Year" value="2024-25" />
         </View>
+
+        {canSwitchRole && (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.teacherProfileCard}
+            onPress={switchRole}
+          >
+            <Text style={styles.teacherProfileText}>Switch Role</Text>
+          </TouchableOpacity>
+        )}
 
         {user?.role === 'staff' && (
           <>

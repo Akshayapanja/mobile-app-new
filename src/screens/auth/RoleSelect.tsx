@@ -1,20 +1,51 @@
 // ✅ Converted from React Web → React Native
 
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Nav = {
-  dispatch: (action: any) => void;
+  goBack: () => void;
+  reset: (state: any) => void;
 };
 
 export default function RoleSelect() {
   const navigation = useNavigation<Nav>();
-  const rootNav = ((navigation as any).getParent?.() as any) || navigation;
+
+  const setActiveRole = async (role: 'parent' | 'staff') => {
+    try {
+      const raw = await AsyncStorage.getItem('intants_user');
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as any;
+      const roles =
+        Array.isArray(parsed?.roles) && parsed.roles.length > 0
+          ? parsed.roles
+          : parsed?.phone === '9900000001'
+            ? (['staff', 'parent'] as const)
+            : ([parsed?.role].filter(Boolean) as any[]);
+
+      await AsyncStorage.setItem(
+        'intants_user',
+        JSON.stringify({
+          ...parsed,
+          roles,
+          role,
+        })
+      );
+    } catch {
+      // ignore: role switching should still navigate
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8 }}>
+          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+        </TouchableOpacity>
+
         <View style={styles.brand}>
           <Text style={styles.logo}>Intants</Text>
           <Text style={styles.subtitle}>School ERP</Text>
@@ -28,14 +59,20 @@ export default function RoleSelect() {
         <View style={styles.cards}>
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() =>
-              rootNav.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: 'Staff' }],
-                })
-              )
-            }
+            onPress={async () => {
+              await setActiveRole('staff');
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'Staff',
+                    state: {
+                      routes: [{ name: 'StaffTabs' }],
+                    },
+                  },
+                ],
+              });
+            }}
             style={[styles.card, styles.staffCard]}
           >
             <Text style={styles.emoji}>👨‍🏫</Text>
@@ -48,14 +85,20 @@ export default function RoleSelect() {
 
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() =>
-              rootNav.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: 'Parent' }],
-                })
-              )
-            }
+            onPress={async () => {
+              await setActiveRole('parent');
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'Parent',
+                    state: {
+                      routes: [{ name: 'ParentTabs' }],
+                    },
+                  },
+                ],
+              });
+            }}
             style={[styles.card, styles.parentCard]}
           >
             <Text style={styles.emoji}>👨‍👩‍👧</Text>
