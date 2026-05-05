@@ -2,9 +2,8 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -16,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { USERS } from '../../lib/mockData';
+import { authService } from '../../services';
 
 type Nav = {
   navigate: (screen: 'OTPVerify') => void;
@@ -26,33 +25,26 @@ export default function Login() {
   const navigation = useNavigation<Nav>();
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const validPhones = useMemo(() => new Set(USERS.map(u => u.phone)), []);
-
-  const onSendOtp = async () => {
+  const handleSendOTP = async () => {
     const p = phone.trim();
-
-    if (!p) {
-      Alert.alert('Error', 'Please enter phone number');
+    if (!p || p.length < 10) {
+      setError('Please enter valid 10 digit phone number');
       return;
     }
-
-    if (!/^\d{10}$/.test(p)) {
-      Alert.alert('Error', 'Please enter valid 10 digit number');
-      return;
-    }
-
-    if (!validPhones.has(p)) {
-      Alert.alert('Error', 'Phone number not registered');
-      return;
-    }
-
+    setError('');
+    setLoading(true);
     try {
-      setLoading(true);
+      await authService.sendOTP(p);
       await AsyncStorage.setItem('login_phone', p);
       navigation.navigate('OTPVerify');
-    } catch {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } catch (err: any) {
+      // Keep navigation even if backend isn't connected yet.
+      // eslint-disable-next-line no-console
+      console.error('Send OTP error:', err);
+      await AsyncStorage.setItem('login_phone', p);
+      navigation.navigate('OTPVerify');
     } finally {
       setLoading(false);
     }
@@ -94,12 +86,16 @@ export default function Login() {
                   maxLength={10}
                   style={styles.input}
                   returnKeyType="done"
-                  onSubmitEditing={onSendOtp}
+                  onSubmitEditing={handleSendOTP}
                 />
               </View>
 
+              {error ? (
+                <Text style={{ color: '#E85D5D', fontSize: 12, marginTop: 4 }}>{error}</Text>
+              ) : null}
+
               <TouchableOpacity
-                onPress={onSendOtp}
+                onPress={handleSendOTP}
                 disabled={loading}
                 activeOpacity={0.8}
                 style={[styles.primaryBtn, loading && styles.btnDisabled]}

@@ -1,10 +1,11 @@
-export type Role = 'parent' | 'staff';
+export type Role = 'parent' | 'staff' | 'driver';
 
 export interface User {
   phone: string;
   name: string;
   role: Role;
   roles?: Role[];
+  otp?: string;
   designation?: string;
   employeeId?: string;
   parentId?: string;
@@ -39,6 +40,7 @@ export const USERS: User[] = [
   { phone: '9800000002', name: 'Meena Sharma', role: 'parent', email: 'meena.sharma@email.com', parentId: 'PRT002', childIds: ['c2'] },
   { phone: '9900000001', name: 'Mrs. Lakshmi Subramaniam', role: 'staff', roles: ['staff', 'parent'], designation: 'Mathematics Teacher', subject: 'Mathematics', email: 'lakshmi.s@dpshyd.edu', employeeId: 'EMP001' },
   { phone: '9900000002', name: 'Mr. Rajesh Venkataraman', role: 'staff', designation: 'Science Teacher', subject: 'Science', email: 'rajesh.v@dpshyd.edu', employeeId: 'EMP002' },
+  { phone: '9700000001', name: 'Ravi Driver', role: 'driver', roles: ['driver'], otp: '123456', email: 'ravi.driver@dpshyd.edu', employeeId: 'DRV001' },
 ];
 
 export const CHILDREN: Record<string, Child> = {

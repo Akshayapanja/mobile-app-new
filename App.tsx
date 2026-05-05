@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppNavigator } from './src/navigation/AppNavigator';
@@ -10,6 +10,7 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { View, ActivityIndicator } from 'react-native';
+import { useAuthStore } from './src/stores/authStore';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -18,6 +19,12 @@ export default function App() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+
+  const loadFromStorage = useAuthStore(state => state.loadFromStorage);
+
+  useEffect(() => {
+    loadFromStorage();
+  }, [loadFromStorage]);
 
   if (!fontsLoaded) {
     return (

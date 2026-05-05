@@ -52,6 +52,17 @@ import StaffNotificationsScreen from '../screens/staff/StaffNotifications';
 import StaffBroadcastScreen from '../screens/staff/BroadcastMessage';
 import StaffCalendarScreen from '../screens/staff/StaffCalendar';
 
+// Driver screens
+import DriverDashboardScreen from '../screens/driver/Dashboard';
+import DriverMyRouteScreen from '../screens/driver/MyRoute';
+import DriverStudentListScreen from '../screens/driver/StudentPickupList';
+import DriverMarkAttendanceScreen from '../screens/driver/MarkAttendance';
+import DriverGPSScreen from '../screens/driver/GPSTracking';
+import DriverTripScreen from '../screens/driver/TripManagement';
+import DriverVehicleScreen from '../screens/driver/MyVehicle';
+import DriverNotificationsScreen from '../screens/driver/Notifications';
+import DriverProfileScreen from '../screens/driver/Profile';
+
 function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -194,7 +205,63 @@ function StaffStack() {
   );
 }
 
-type UserRole = null | 'parent' | 'staff';
+function DriverTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: '#4A90D9',
+        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#F3F4F6',
+          borderTopWidth: 1,
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarIcon: ({ focused, color }) => {
+          let iconName: React.ComponentProps<typeof Ionicons>['name'] = 'home-outline';
+          if (route.name === 'DriverHome') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'DriverRouteTab') {
+            iconName = focused ? 'map' : 'map-outline';
+          } else if (route.name === 'DriverAttendanceTab') {
+            iconName = focused ? 'checkmark-circle' : 'checkmark-circle-outline';
+          } else if (route.name === 'DriverProfileTab') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+          return <Ionicons name={iconName} size={22} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="DriverHome" component={DriverDashboardScreen} options={{ tabBarLabel: 'Home' }} />
+      <Tab.Screen name="DriverRouteTab" component={DriverMyRouteScreen} options={{ tabBarLabel: 'Route' }} />
+      <Tab.Screen
+        name="DriverAttendanceTab"
+        component={DriverMarkAttendanceScreen}
+        options={{ tabBarLabel: 'Attendance' }}
+      />
+      <Tab.Screen name="DriverProfileTab" component={DriverProfileScreen} options={{ tabBarLabel: 'Profile' }} />
+    </Tab.Navigator>
+  );
+}
+
+function DriverStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="DriverTabs" component={DriverTabNavigator} />
+      <Stack.Screen name="DriverStudentList" component={DriverStudentListScreen} />
+      <Stack.Screen name="DriverGPS" component={DriverGPSScreen} />
+      <Stack.Screen name="DriverTrip" component={DriverTripScreen} />
+      <Stack.Screen name="DriverVehicle" component={DriverVehicleScreen} />
+      <Stack.Screen name="DriverNotifications" component={DriverNotificationsScreen} />
+      <Stack.Screen name="DriverMarkAttendance" component={DriverMarkAttendanceScreen} />
+    </Stack.Navigator>
+  );
+}
+
+type UserRole = null | 'parent' | 'staff' | 'driver';
 
 export function AppNavigator() {
   const [userRole, setUserRole] = useState<UserRole>(null);
@@ -225,7 +292,8 @@ export function AppNavigator() {
     );
   }
 
-  const initialRouteName = userRole === 'parent' ? 'Parent' : userRole === 'staff' ? 'Staff' : 'Auth';
+  const initialRouteName =
+    userRole === 'parent' ? 'Parent' : userRole === 'staff' ? 'Staff' : userRole === 'driver' ? 'Driver' : 'Auth';
 
   return (
     <NavigationContainer
@@ -242,6 +310,7 @@ export function AppNavigator() {
         <Stack.Screen name="Auth" component={AuthStack} />
         <Stack.Screen name="Parent" component={ParentStack} />
         <Stack.Screen name="Staff" component={StaffStack} />
+        <Stack.Screen name="Driver" component={DriverStack} />
       </Stack.Navigator>
     </NavigationContainer>
   );

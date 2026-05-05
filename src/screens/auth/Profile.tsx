@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getUser, logout } from '../../lib/session';
+import { authService } from '../../services';
+import { getUser } from '../../lib/session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -115,6 +116,31 @@ export default function Profile() {
     }
   };
 
+  const handleLogout = async () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await authService.logout();
+          } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('Logout error:', err);
+          } finally {
+            rootNav.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'Auth' }],
+              })
+            );
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -198,36 +224,7 @@ export default function Profile() {
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.logoutBtn}
-          onPress={() =>
-            Alert.alert('Logout', 'Are you sure you want to logout?', [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Logout',
-                style: 'destructive',
-                onPress: async () => {
-                  try {
-                    await logout();
-                    await AsyncStorage.multiRemove([
-                      'intants_user',
-                      'intants_school_selected',
-                      'login_phone',
-                      'sentHomework',
-                    ]);
-                  } catch (e) {
-                    console.log('Logout cleanup error:', e);
-                  } finally {
-                    await new Promise(resolve => setTimeout(resolve, 150));
-                    rootNav.dispatch(
-                      CommonActions.reset({
-                        index: 0,
-                        routes: [{ name: 'Auth' }],
-                      })
-                    );
-                  }
-                },
-              },
-            ])
-          }
+          onPress={handleLogout}
         >
           <Text style={styles.logoutBtnText}>→ Logout</Text>
         </TouchableOpacity>

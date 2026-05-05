@@ -17,7 +17,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUser, login } from '../../lib/session';
+import { authService } from '../../services';
 
 type Nav = {
   navigate: (screen: any) => void;
@@ -34,6 +34,7 @@ export default function OTPVerify() {
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [timer, setTimer] = useState(45);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const refs = useRef<Array<TextInput | null>>([]);
 
@@ -94,47 +95,122 @@ export default function OTPVerify() {
     refs.current[0]?.focus();
   };
 
-  const verify = async () => {
-    if (loading) return;
+  const navigateByRole = (user: any, phone: string) => {
+    if (phone === '9700000001' || user?.role === 'driver') {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Driver' }],
+      });
+    } else if (user?.roles?.length > 1 || phone === '9900000001') {
+      navigation.navigate('RoleSelect' as never);
+    } else if (user?.role === 'staff') {
+      navigation.navigate('SchoolSelector' as never);
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Parent' }],
+      });
+    }
+  };
 
-    if (otp !== '123456') {
-      Alert.alert('Error', 'Invalid OTP.\nPlease enter 123456');
+  const handleMockLogin = async (phone: string, otpString: string) => {
+    if (otpString !== '123456') {
+      setError('Invalid OTP. Use 123456 for demo.');
       return;
     }
 
-    const p = (await AsyncStorage.getItem('login_phone')) || '';
-    if (!p) {
-      Alert.alert('Error', 'Please enter phone number');
+    const mockUsers: Record<string, any> = {
+      '9800000001': {
+        id: 'u1',
+        name: 'Priya Kumar',
+        phone: '9800000001',
+        role: 'parent',
+        roles: ['parent'],
+        email: 'priya.kumar@email.com',
+      },
+      '9800000002': {
+        id: 'u2',
+        name: 'Meena Sharma',
+        phone: '9800000002',
+        role: 'parent',
+        roles: ['parent'],
+        email: 'meena.sharma@email.com',
+      },
+      '9900000001': {
+        id: 'u3',
+        name: 'Mrs. Lakshmi Subramaniam',
+        phone: '9900000001',
+        role: 'staff',
+        roles: ['staff', 'parent'],
+        email: 'lakshmi.s@dpshyd.edu',
+        employeeId: 'EMP001',
+        designation: 'Mathematics Teacher',
+      },
+      '9700000001': {
+        id: 'u4',
+        name: 'Ravi Driver',
+        phone: '9700000001',
+        role: 'driver',
+        roles: ['driver'],
+        email: 'ravi.driver@dpshyd.edu',
+        employeeId: 'DRV001',
+      },
+    };
+
+    const user = mockUsers[phone];
+    if (!user) {
+      setError('Phone number not found. Use demo numbers.');
+      return;
+    }
+
+    await AsyncStorage.setItem('intants_user', JSON.stringify(user));
+    navigateByRole(user, phone);
+  };
+
+  const verify = async () => {
+    const otpString = otp;
+    if (otpString.length !== 6) {
+      setError('Please enter 6 digit OTP');
+      return;
+    }
+    setError('');
+    setLoading(true);
+
+    const phone = (await AsyncStorage.getItem('login_phone')) || '';
+    if (!phone) {
+      setError('Please enter phone number');
       navigation.goBack();
+      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
-      const u = await login(p);
-      if (!u) {
-        Alert.alert('Error', 'Phone number not registered');
-        navigation.goBack();
-        return;
-      }
+      const response = await authService.verifyOTP(phone, otpString);
+      const user = (response as any)?.user;
 
-      const user = await getUser();
-      const phone = await AsyncStorage.getItem('login_phone');
-
-      if (phone === '9900000001') {
-        navigation.navigate('RoleSelect' as never);
-      } else if (user?.role === 'staff') {
-        navigation.navigate('SchoolSelector' as never);
-      } else if (user?.role === 'parent') {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Parent' }],
-        });
-      }
-    } catch {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      await AsyncStorage.setItem('intants_user', JSON.stringify(user));
+      navigateByRole(user, phone);
+    } catch (err: any) {
+      // eslint-disable-next-line no-console
+      console.error('Verify OTP error:', err);
+      await handleMockLogin(phone, otpString);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    setDigits(['', '', '', '', '', '']);
+    setError('');
+    setTimer(30);
+    refs.current[0]?.focus();
+    try {
+      const phone = (await AsyncStorage.getItem('login_phone')) || '';
+      if (!phone) return;
+      await authService.sendOTP(phone);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Resend OTP error:', err);
     }
   };
 
@@ -206,7 +282,7 @@ export default function OTPVerify() {
                   Resend OTP in <Text style={styles.resendTime}>00:{String(timer).padStart(2, '0')}</Text>
                 </Text>
               ) : (
-                <TouchableOpacity onPress={resend} activeOpacity={0.7}>
+                <TouchableOpacity onPress={handleResendOTP} activeOpacity={0.7}>
                   <Text style={styles.resendLink}>Resend OTP</Text>
                 </TouchableOpacity>
               )}
@@ -214,12 +290,16 @@ export default function OTPVerify() {
 
             <TouchableOpacity
               onPress={verify}
-              disabled={!canVerify}
+              disabled={!canVerify || loading}
               activeOpacity={0.85}
               style={[styles.primaryBtn, (!canVerify || loading) && styles.btnDisabled]}
             >
               <Text style={styles.primaryBtnText}>{loading ? 'Verifying...' : 'Verify OTP'}</Text>
             </TouchableOpacity>
+
+            {error ? (
+              <Text style={{ color: '#E85D5D', fontSize: 12, textAlign: 'center', marginTop: 8 }}>{error}</Text>
+            ) : null}
 
             <View style={styles.greenCard}>
               <Ionicons name="checkmark-circle" size={18} color="#16A34A" style={styles.greenIcon} />

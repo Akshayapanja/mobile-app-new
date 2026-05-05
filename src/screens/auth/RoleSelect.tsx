@@ -3,7 +3,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Nav = {
@@ -14,7 +15,11 @@ type Nav = {
 export default function RoleSelect() {
   const navigation = useNavigation<Nav>();
 
-  const setActiveRole = async (role: 'parent' | 'staff') => {
+  type AppRole = 'parent' | 'staff' | 'driver';
+
+  const [availableRoles, setAvailableRoles] = useState<AppRole[]>([]);
+
+  const setActiveRole = async (role: AppRole) => {
     try {
       const raw = await AsyncStorage.getItem('intants_user');
       if (!raw) return;
@@ -39,9 +44,56 @@ export default function RoleSelect() {
     }
   };
 
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const raw = await AsyncStorage.getItem('intants_user');
+      if (!alive) return;
+      if (!raw) {
+        setAvailableRoles([]);
+        return;
+      }
+      const parsed = JSON.parse(raw) as any;
+      const roles: unknown =
+        Array.isArray(parsed?.roles) && parsed.roles.length > 0
+          ? parsed.roles
+          : parsed?.phone === '9900000001'
+            ? (['staff', 'parent'] as const)
+            : ([parsed?.role].filter(Boolean) as any[]);
+
+      const next = (Array.isArray(roles) ? roles : [])
+        .filter((r): r is AppRole => r === 'staff' || r === 'parent' || r === 'driver');
+
+      setAvailableRoles(next);
+
+      // Safety net: if a driver-only user somehow lands here, go straight to Driver.
+      if (next.length === 1 && next[0] === 'driver') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Driver' }],
+        });
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [navigation]);
+
+  const canContinueAsStaff = useMemo(() => availableRoles.includes('staff'), [availableRoles]);
+  const canContinueAsParent = useMemo(() => availableRoles.includes('parent'), [availableRoles]);
+  const canContinueAsDriver = useMemo(() => availableRoles.includes('driver'), [availableRoles]);
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          padding: 24,
+          paddingBottom: 40,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8 }}>
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
@@ -57,57 +109,89 @@ export default function RoleSelect() {
         </Text>
 
         <View style={styles.cards}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={async () => {
-              await setActiveRole('staff');
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: 'Staff',
-                    state: {
-                      routes: [{ name: 'StaffTabs' }],
+          {canContinueAsStaff && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={async () => {
+                await setActiveRole('staff');
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: 'Staff',
+                      state: {
+                        routes: [{ name: 'StaffTabs' }],
+                      },
                     },
-                  },
-                ],
-              });
-            }}
-            style={[styles.card, styles.staffCard]}
-          >
-            <Text style={styles.emoji}>👨‍🏫</Text>
-            <Text style={styles.cardTitle}>Continue as Staff</Text>
-            <Text style={styles.cardText}>
-              Access attendance, homework,{'\n'}marks and more
-            </Text>
-            <Text style={[styles.arrow, styles.arrowBlue]}>→</Text>
-          </TouchableOpacity>
+                  ],
+                });
+              }}
+              style={[styles.card, styles.staffCard]}
+            >
+              <Text style={styles.emoji}>👨‍🏫</Text>
+              <Text style={styles.cardTitle}>Continue as Staff</Text>
+              <Text style={styles.cardText}>
+                Access attendance, homework,{'\n'}marks and more
+              </Text>
+              <Text style={[styles.arrow, styles.arrowBlue]}>→</Text>
+            </TouchableOpacity>
+          )}
 
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={async () => {
-              await setActiveRole('parent');
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: 'Parent',
-                    state: {
-                      routes: [{ name: 'ParentTabs' }],
+          {canContinueAsDriver && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={async () => {
+                await setActiveRole('driver');
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: 'Driver',
+                      state: {
+                        routes: [{ name: 'DriverTabs' }],
+                      },
                     },
-                  },
-                ],
-              });
-            }}
-            style={[styles.card, styles.parentCard]}
-          >
-            <Text style={styles.emoji}>👨‍👩‍👧</Text>
-            <Text style={styles.cardTitle}>Continue as Parent</Text>
-            <Text style={styles.cardText}>
-              View your child progress,{'\n'}fees and attendance
-            </Text>
-            <Text style={[styles.arrow, styles.arrowGray]}>→</Text>
-          </TouchableOpacity>
+                  ],
+                });
+              }}
+              style={[styles.card, styles.staffCard]}
+            >
+              <Text style={styles.emoji}>🚌</Text>
+              <Text style={styles.cardTitle}>Continue as Driver</Text>
+              <Text style={styles.cardText}>
+                Manage routes, pickups,{'\n'}attendance and GPS
+              </Text>
+              <Text style={[styles.arrow, styles.arrowBlue]}>→</Text>
+            </TouchableOpacity>
+          )}
+
+          {canContinueAsParent && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={async () => {
+                await setActiveRole('parent');
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: 'Parent',
+                      state: {
+                        routes: [{ name: 'ParentTabs' }],
+                      },
+                    },
+                  ],
+                });
+              }}
+              style={[styles.card, styles.parentCard]}
+            >
+              <Text style={styles.emoji}>👨‍👩‍👧</Text>
+              <Text style={styles.cardTitle}>Continue as Parent</Text>
+              <Text style={styles.cardText}>
+                View your child progress,{'\n'}fees and attendance
+              </Text>
+              <Text style={[styles.arrow, styles.arrowGray]}>→</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.flexSpacer} />
@@ -115,7 +199,7 @@ export default function RoleSelect() {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Powered by Intants</Text>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -124,12 +208,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 18,
   },
   brand: {
     alignItems: 'center',
@@ -171,6 +249,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
+    marginBottom: 12,
   },
   staffCard: {
     borderWidth: 2,

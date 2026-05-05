@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  ActivityIndicator,
   Keyboard,
   StyleSheet,
   Text,
@@ -13,26 +14,29 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUser, setSchoolSelected } from '../../lib/session';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUser } from '../../lib/session';
+import { authService } from '../../services';
 
 type Nav = {
   navigate: (screen: any) => void;
   goBack: () => void;
+  reset: (state: any) => void;
 };
 
 type School = {
   id: string;
   name: string;
   address: string;
-  active: boolean;
+  shortName?: string;
 };
 
-const SCHOOLS: School[] = [
+const MOCK_SCHOOLS: School[] = [
   {
-    id: 'dps_hyd',
-    name: 'Delhi Public School, Hyderabad',
-    address: 'Jubilee Hills, Hyderabad, Telangana',
-    active: true,
+    id: 'school1',
+    name: 'Delhi Public School',
+    address: 'Jubilee Hills, Hyderabad',
+    shortName: 'DPS Hyderabad',
   },
 ];
 
@@ -40,8 +44,11 @@ export default function SchoolSelector() {
   const navigation = useNavigation<Nav>();
 
   const [userName, setUserName] = useState<string>('');
-  const [userRole, setUserRole] = useState<'parent' | 'staff' | ''>('');
-  const selectedSchool = SCHOOLS[0];
+  const [userRole, setUserRole] = useState<'parent' | 'staff' | 'driver' | ''>('');
+  const [schools, setSchools] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const selectedSchool = schools?.[0] || null;
 
   useEffect(() => {
     let mounted = true;
@@ -60,23 +67,59 @@ export default function SchoolSelector() {
     };
   }, [navigation]);
 
+  useEffect(() => {
+    loadSchools();
+  }, []);
+
+  const loadSchools = async () => {
+    setLoading(true);
+    try {
+      const response = await authService.getSchools();
+      if ((response as any)?.data?.length > 0) {
+        setSchools((response as any).data);
+      } else {
+        setSchools(MOCK_SCHOOLS);
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Load schools error:', err);
+      setSchools(MOCK_SCHOOLS);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const firstName = useMemo(() => {
     const n = userName.trim();
     if (!n) return '';
     return n.split(' ')[0] || n;
   }, [userName]);
 
-  const onContinue = async () => {
+  const handleContinue = async () => {
+    if (!selectedSchool) return;
+    setLoading(true);
     try {
-      await setSchoolSelected();
+      await authService.selectSchool(selectedSchool.id);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Select school error:', err);
+    } finally {
+      await AsyncStorage.setItem('intants_school_selected', 'true');
+      await AsyncStorage.setItem('intants_school_id', selectedSchool.id || 'school1');
+      setLoading(false);
+
       const user = await getUser();
       if (user?.role === 'staff') {
-        navigation.navigate('StaffTabs' as never);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Staff' }],
+        } as any);
       } else {
-        navigation.navigate('ParentTabs' as never);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Parent' }],
+        } as any);
       }
-    } catch {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
     }
   };
 
@@ -118,12 +161,9 @@ export default function SchoolSelector() {
                 <View style={styles.cardBody}>
                   <Text style={styles.schoolName}>{selectedSchool.name}</Text>
                   <Text style={styles.schoolAddress}>{selectedSchool.address}</Text>
-
-                  {selectedSchool.active && (
-                    <View style={styles.activePill}>
-                      <Text style={styles.activePillText}>Active</Text>
-                    </View>
-                  )}
+                  <View style={styles.activePill}>
+                    <Text style={styles.activePillText}>Active</Text>
+                  </View>
                 </View>
 
                 <View style={styles.cardRight}>
@@ -135,8 +175,13 @@ export default function SchoolSelector() {
 
           <View style={styles.flexSpacer} />
 
-          <TouchableOpacity onPress={onContinue} activeOpacity={0.85} style={styles.continueBtn}>
-            <Text style={styles.continueBtnText}>Continue →</Text>
+          <TouchableOpacity
+            onPress={handleContinue}
+            disabled={loading || !selectedSchool}
+            activeOpacity={0.85}
+            style={[styles.continueBtn, (loading || !selectedSchool) && { opacity: 0.7 }]}
+          >
+            {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.continueBtnText}>Continue →</Text>}
           </TouchableOpacity>
 
           <Text style={styles.helpText}>Not your school? Contact admin</Text>
