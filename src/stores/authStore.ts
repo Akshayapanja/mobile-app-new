@@ -54,8 +54,7 @@ export const useAuthStore = create<AuthState>(set => ({
         isAuthenticated: !!user,
       });
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Load from storage error:', err);
+      // TODO: handle error properly
     }
   },
 }));

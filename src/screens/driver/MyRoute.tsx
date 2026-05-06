@@ -20,10 +20,9 @@ export default function DriverMyRouteScreen() {
     try {
       const response = await driverService.getMyRoute();
       if ((response as any)?.data || response) {
-        console.log('Route loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

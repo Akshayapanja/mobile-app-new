@@ -112,10 +112,9 @@ export default function Notifications() {
     try {
       const response = await parentService.getNotifications();
       if ((response as any)?.data || response) {
-        console.log('Notifications loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

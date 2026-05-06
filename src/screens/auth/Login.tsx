@@ -46,10 +46,7 @@ export default function Login() {
       navigation.navigate('OTPVerify');
     } catch (err: any) {
       // Keep navigation even if backend isn't connected yet.
-      console.log(
-        'Backend not connected, using mock login:',
-        err?.message ?? String(err)
-      );
+      // TODO: handle error
       await AsyncStorage.setItem('login_phone', p);
       navigation.navigate('OTPVerify');
     } finally {

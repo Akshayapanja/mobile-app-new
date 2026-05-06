@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
+// TODO: Remove when backend connected
 import { CHILDREN, USERS } from '../../lib/mockData';
 import { parentService } from '../../services';
 import { SkeletonCard } from '../../components/common';
@@ -90,7 +91,7 @@ export default function ParentDashboard() {
       const response = await parentService.getDashboard();
       setDashboardData((response as any)?.data || response);
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
       // keep existing mock UI as fallback
     } finally {
       setLoading(false);

@@ -33,6 +33,7 @@ type School = {
 
 const MOCK_SCHOOLS: School[] = [
   {
+    // TODO: Replace with real ID from user context when backend connected
     id: 'school1',
     name: 'Delhi Public School',
     address: 'Jubilee Hills, Hyderabad',
@@ -81,10 +82,7 @@ export default function SchoolSelector() {
         setSchools(MOCK_SCHOOLS);
       }
     } catch (err: any) {
-      console.log(
-        'Backend not connected, using mock login:',
-        err?.message ?? String(err)
-      );
+      // TODO: handle error
       setSchools(MOCK_SCHOOLS);
     } finally {
       setLoading(false);
@@ -103,12 +101,10 @@ export default function SchoolSelector() {
     try {
       await authService.selectSchool(selectedSchool.id);
     } catch (err: any) {
-      console.log(
-        'Backend not connected, using mock login:',
-        err?.message ?? String(err)
-      );
+      // TODO: handle error
     } finally {
       await AsyncStorage.setItem('intants_school_selected', 'true');
+      // TODO: Replace with real ID from user context when backend connected
       await AsyncStorage.setItem('intants_school_id', selectedSchool.id || 'school1');
       setLoading(false);
 

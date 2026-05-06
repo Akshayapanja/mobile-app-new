@@ -74,10 +74,9 @@ export default function AcademicCalendar() {
     try {
       const response = await parentService.getCalendar();
       if ((response as any)?.data || response) {
-        console.log('Calendar loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

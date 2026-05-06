@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { parentService } from '../../services';
 
 type Status = 'Ongoing' | 'Done' | 'Upcoming';
@@ -44,12 +45,13 @@ export default function Timetable() {
 
   const loadTimetable = async () => {
     try {
-      const response = await parentService.getTimetable('section1');
+      // TODO: Replace with real ID from user context when backend connected
+      const sectionId = (await AsyncStorage.getItem('intants_section_id')) || 'section1';
+      const response = await parentService.getTimetable(sectionId);
       if ((response as any)?.data || response) {
-        console.log('Timetable loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

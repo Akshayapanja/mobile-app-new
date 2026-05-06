@@ -32,10 +32,9 @@ export default function StaffCalendar() {
     try {
       const response = await teacherService.getCalendar();
       if ((response as any)?.data || response) {
-        console.log('Calendar loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

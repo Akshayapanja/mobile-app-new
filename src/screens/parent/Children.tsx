@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getUser } from '../../lib/session';
+// TODO: Remove when backend connected
 import { type Child } from '../../lib/mockData';
 import { parentService } from '../../services';
 import { SkeletonCard } from '../../components/common';
@@ -77,10 +78,9 @@ export default function Children() {
         try {
           const response = await parentService.getChildren();
           if ((response as any)?.data?.length > 0) {
-            console.log('Children loaded from API');
           }
         } catch (err: any) {
-          console.log('API not connected, using mock data:', err?.message ?? String(err));
+          // TODO: handle error
         }
 
         const u = await getUser();

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { driverService } from '../../services';
 
 type Nav = { goBack: () => void };
@@ -42,24 +43,26 @@ export default function DriverGPSScreen() {
 
       setSharing(true);
 
+      // TODO: Replace with real ID from user context when backend connected
+      const vehicleId = (await AsyncStorage.getItem('intants_vehicle_id')) || 'vehicle1';
+
       const interval = setInterval(async () => {
         try {
           const location = await Location.getCurrentPositionAsync({});
-          await driverService.updateGPSLocation('vehicle1', {
+          await driverService.updateGPSLocation(vehicleId, {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
             speed: location.coords.speed || 0,
           });
-          console.log('GPS location updated');
         } catch (err: any) {
-          console.log('GPS update error:', err?.message ?? String(err));
+          // TODO: handle error
         }
       }, 30000);
 
       setLocationInterval(interval);
       Alert.alert('Started', 'Location sharing started.\nParents can see your location.');
     } catch (err: any) {
-      console.log('Location error:', err?.message ?? String(err));
+      // TODO: handle error
       setSharing(true);
     }
   };

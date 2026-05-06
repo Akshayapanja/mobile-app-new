@@ -37,13 +37,13 @@ export default function Results() {
   const loadResults = async () => {
     try {
       const user = await getUser();
+      // TODO: Replace with real ID from user context when backend connected
       const childId = (user as any)?.childIds?.[0] || 'c1';
       const response = await parentService.getResults(childId);
       if ((response as any)?.data || response) {
-        console.log('Results loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

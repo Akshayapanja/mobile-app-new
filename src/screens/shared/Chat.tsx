@@ -122,10 +122,9 @@ export default function Chat() {
     try {
       const response = await parentService.getMessages(chatId);
       if ((response as any)?.data || response) {
-        console.log('Messages loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 
@@ -142,7 +141,7 @@ export default function Chat() {
     try {
       await parentService.sendMessage(chatId, t);
     } catch (err: any) {
-      console.log('Send message API error:', err?.message ?? String(err));
+      // TODO: handle error
     }
 
     setMsgs(prev => [...prev, { id: `${threadKey}-${Date.now()}`, dir: 'out', text: t, time: nowLabel() }]);

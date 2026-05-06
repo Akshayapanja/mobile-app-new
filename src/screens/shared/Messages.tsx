@@ -170,10 +170,9 @@ export default function Messages() {
         response = await parentService.getConversations();
       }
       if ((response as any)?.data || response) {
-        console.log('Conversations loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

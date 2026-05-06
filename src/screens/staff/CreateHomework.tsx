@@ -141,9 +141,8 @@ export default function CreateHomework() {
         sectionId: `${form.cls}-${form.sec}`,
         maxMarks: parseInt(form.maxMarks, 10) || 100,
       });
-      console.log('Homework created via API');
     } catch (err: any) {
-      console.log('Create homework API error:', err?.message ?? String(err));
+      // TODO: handle error
     } finally {
       setSubmitting(false);
       setSuccess(true);

@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { driverService } from '../../services';
 
 type Nav = { goBack: () => void };
@@ -45,6 +46,11 @@ export default function DriverMarkAttendanceScreen() {
 
   const handleSubmit = async () => {
     try {
+      // TODO: Replace with real ID from user context when backend connected
+      const vehicleId = (await AsyncStorage.getItem('intants_vehicle_id')) || 'vehicle1';
+      // TODO: Replace with real ID from user context when backend connected
+      const routeId = (await AsyncStorage.getItem('intants_route_id')) || 'route1';
+
       const attendanceData = students.map(s => ({
         studentId: s.id || s.name,
         pickupStatus: statusById[s.id] === 'P' ? 'picked' : 'absent',
@@ -52,14 +58,14 @@ export default function DriverMarkAttendanceScreen() {
 
       await driverService.markBulkAttendance({
         date: new Date().toISOString().split('T')[0],
-        vehicleId: 'vehicle1',
-        routeId: 'route1',
+        vehicleId,
+        routeId,
         attendance: attendanceData,
       });
 
       Alert.alert('Success', 'Attendance submitted!');
     } catch (err: any) {
-      console.log('Transport attendance API error:', err?.message ?? String(err));
+      // TODO: handle error
       Alert.alert('Success', 'Attendance submitted!');
     }
   };

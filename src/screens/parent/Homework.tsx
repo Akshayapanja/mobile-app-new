@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getSentHomework } from '../../lib/session';
 import { parentService } from '../../services';
@@ -89,12 +90,13 @@ export default function Homework() {
 
   const loadHomework = async () => {
     try {
-      const response = await parentService.getHomework('section1');
+      // TODO: Replace with real ID from user context when backend connected
+      const sectionId = (await AsyncStorage.getItem('intants_section_id')) || 'section1';
+      const response = await parentService.getHomework(sectionId);
       if ((response as any)?.data || response) {
-        console.log('Homework loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

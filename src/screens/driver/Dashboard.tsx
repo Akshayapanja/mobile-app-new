@@ -29,9 +29,8 @@ export default function DriverDashboardScreen() {
   const loadDashboard = async () => {
     try {
       await Promise.all([driverService.getTransportStats(), driverService.getMyRoute()]);
-      console.log('Driver dashboard loaded from API');
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     } finally {
       setLoading(false);
     }

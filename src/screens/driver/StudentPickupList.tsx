@@ -35,10 +35,9 @@ export default function DriverStudentListScreen() {
     try {
       const response = await driverService.getStudentsOnRoute();
       if ((response as any)?.data || response) {
-        console.log('Students loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

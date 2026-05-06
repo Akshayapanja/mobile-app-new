@@ -77,10 +77,9 @@ export default function Profile() {
           ...(prev || ({} as any)),
           ...(profileData as any),
         }));
-        console.log('Profile loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 
@@ -146,7 +145,7 @@ export default function Profile() {
           try {
             await authService.logout();
           } catch (err: any) {
-            console.log('Logout API not connected:', err?.message ?? String(err));
+            // TODO: handle error
           } finally {
             rootNav.dispatch(
               CommonActions.reset({

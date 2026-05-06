@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+// TODO: Remove when backend connected
 import { CHILDREN } from '../../lib/mockData';
 
 type RouteParams = { childId: string | number };
@@ -13,7 +14,9 @@ type RouteParams = { childId: string | number };
 function normalizeChildId(input: unknown): '1' | '2' | '' {
   if (input === null || input === undefined) return '';
   const s = String(input);
+  // TODO: Replace with real ID from user context when backend connected
   if (s === '1' || s === 'c1') return '1';
+  // TODO: Replace with real ID from user context when backend connected
   if (s === '2' || s === 'c2') return '2';
   return '';
 }

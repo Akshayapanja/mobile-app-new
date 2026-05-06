@@ -36,7 +36,7 @@ export const useSchoolStore = create<SchoolState>(set => ({
         set({ school: JSON.parse(schoolStr) });
       }
     } catch (err) {
-      console.log('Load school from storage:', err);
+      // TODO: handle error properly
     }
   },
 }));

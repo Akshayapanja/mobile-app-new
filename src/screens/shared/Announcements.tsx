@@ -161,10 +161,9 @@ export default function Announcements() {
     try {
       const response = await parentService.getAnnouncements();
       if ((response as any)?.data || response) {
-        console.log('Announcements loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

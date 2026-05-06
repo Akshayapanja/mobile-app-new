@@ -42,9 +42,8 @@ export default function BroadcastMessage() {
         content: data.message,
         audience: `Class ${data.selectedClass} Section ${data.selectedSection} Parents`,
       });
-      console.log('Broadcast sent via API');
     } catch (err: any) {
-      console.log('Broadcast API error:', err?.message ?? String(err));
+      // TODO: handle error
     } finally {
       reset({ ...data, message: '' });
       Alert.alert(

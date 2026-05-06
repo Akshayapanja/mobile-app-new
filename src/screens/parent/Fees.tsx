@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getUser } from '../../lib/session';
+// TODO: Remove when backend connected
 import { CHILDREN } from '../../lib/mockData';
 import { parentService } from '../../services';
 
@@ -30,16 +31,17 @@ export default function Fees() {
     async function load() {
       try {
         const u = await getUser();
+        // TODO: Replace with real ID from user context when backend connected
         const firstId = (u as any)?.childIds?.[0] || 'c1';
         const response = await parentService.getFeeInvoices(firstId);
         if ((response as any)?.data) {
-          console.log('Fees loaded from API');
         }
       } catch (err: any) {
-        console.log('API not connected, using mock data:', err?.message ?? String(err));
+        // TODO: handle error
       }
 
       const u = await getUser();
+      // TODO: Replace with real ID from user context when backend connected
       const firstId = u?.childIds?.[0] || 'c1';
       const c = CHILDREN[firstId];
       if (mounted) setChild(c || null);

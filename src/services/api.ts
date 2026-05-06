@@ -27,8 +27,7 @@ api.interceptors.request.use(
         config.headers['x-school-id'] = schoolId;
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Request interceptor error:', error);
+      // TODO: handle error properly
     }
     return config;
   },

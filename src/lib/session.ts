@@ -1,3 +1,4 @@
+// TODO: Remove when backend connected
 import { USERS, User } from './mockData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

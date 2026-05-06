@@ -19,7 +19,6 @@ export const notificationService = {
   registerForPushNotifications: async (): Promise<string | null> => {
     try {
       if (!Device.isDevice) {
-        console.log('Push notifications require physical device');
         return null;
       }
 
@@ -32,7 +31,6 @@ export const notificationService = {
       }
 
       if (finalStatus !== 'granted') {
-        console.log('Push notification permission denied');
         return null;
       }
 
@@ -53,14 +51,13 @@ export const notificationService = {
 
       try {
         await api.patch('/api/v1/auth/me', { pushToken: token.data });
-        console.log('Push token saved to backend');
       } catch (err) {
-        console.log('Could not save push token to backend:', err);
+        // TODO: handle error
       }
 
       return token.data;
     } catch (err) {
-      console.log('Push notification setup error:', err);
+      // TODO: handle error
       return null;
     }
   },
@@ -94,13 +91,13 @@ export const notificationService = {
   },
 };
 
-export const useNotificationListeners = (onNotification: (data: any) => void) => {
+export const useNotificationListeners = (onNotification: (data: Record<string, unknown>) => void) => {
   const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-    onNotification(notification.request.content.data);
+    onNotification(notification.request.content.data as Record<string, unknown>);
   });
 
   const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-    onNotification(response.notification.request.content.data);
+    onNotification(response.notification.request.content.data as Record<string, unknown>);
   });
 
   return () => {

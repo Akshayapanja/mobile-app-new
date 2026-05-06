@@ -34,10 +34,9 @@ export default function BusTracking() {
     try {
       const response = await parentService.getLiveTracking();
       if ((response as any)?.data || response) {
-        console.log('Tracking loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

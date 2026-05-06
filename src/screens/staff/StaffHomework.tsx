@@ -155,10 +155,9 @@ export default function StaffHomework() {
       const sectionId = `${cls}-${sec}`;
       const response = await teacherService.getHomework(sectionId);
       if ((response as any)?.data || response) {
-        console.log('Homework loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 

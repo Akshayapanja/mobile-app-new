@@ -3,6 +3,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { teacherService } from '../../services';
 
 type Student = { roll: string; name: string; marks: string };
@@ -102,15 +103,16 @@ export default function MarksEntry() {
     try {
       const response = await teacherService.getMarks({ sectionId: `${cls}-${sec}` });
       if ((response as any)?.data || response) {
-        console.log('Marks loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     }
   };
 
   const handleSaveMarks = async () => {
     try {
+      // TODO: Replace with real ID from user context when backend connected
+      const examId = (await AsyncStorage.getItem('intants_exam_id')) || 'exam1';
       const marksData = students.map(s => ({
         studentId: s.name,
         marks: parseInt(s.marks || '0', 10) || 0,
@@ -118,27 +120,29 @@ export default function MarksEntry() {
       }));
 
       await teacherService.submitMarks({
-        examId: 'exam1',
+        examId,
         sectionId: `${cls}-${sec}`,
         marks: marksData,
       });
 
       Alert.alert('Success', '✅ Marks saved successfully!');
     } catch (err: any) {
-      console.log('Save marks API error:', err?.message ?? String(err));
+      // TODO: handle error
       Alert.alert('Success', '✅ Marks saved successfully!');
     }
   };
 
   const handleLockMarks = async () => {
     try {
+      // TODO: Replace with real ID from user context when backend connected
+      const examId = (await AsyncStorage.getItem('intants_exam_id')) || 'exam1';
       await teacherService.lockMarks({
-        examId: 'exam1',
+        examId,
         sectionId: `${cls}-${sec}`,
       });
       Alert.alert('Locked', '🔒 Marks locked successfully!');
     } catch (err: any) {
-      console.log('Lock marks API error:', err?.message ?? String(err));
+      // TODO: handle error
       Alert.alert('Locked', '🔒 Marks locked successfully!');
     }
   };

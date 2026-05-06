@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 
+// TODO: Remove when backend connected
 import { CHILDREN } from '../../lib/mockData';
 import { getUser } from '../../lib/session';
 import { parentService } from '../../services';
@@ -32,6 +33,7 @@ function isSunday(year: number, monthIndex: number, day: number) {
 
 export default function Attendance() {
   const navigation = useNavigation<any>();
+  // TODO: Replace with real ID from user context when backend connected
   const child = CHILDREN.c1; // Arjun Kumar (mock)
 
   const [attendanceData, setAttendanceData] = useState<any>(null);
@@ -49,6 +51,7 @@ export default function Attendance() {
   const loadAttendance = async () => {
     try {
       const user = await getUser();
+      // TODO: Replace with real ID from user context when backend connected
       const childId = (user as any)?.childIds?.[0] || 'c1';
       const [attendance, stats] = await Promise.all([
         parentService.getAttendance({ studentId: childId }),
@@ -59,7 +62,7 @@ export default function Attendance() {
         stats: (stats as any)?.data || stats,
       });
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
       // Keep existing mock UI as fallback
       setAttendanceData(null);
     } finally {

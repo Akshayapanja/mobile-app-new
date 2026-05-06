@@ -118,7 +118,7 @@ export default function MarkAttendance() {
 
       Alert.alert('Success', `Attendance submitted for Class ${selectedClass}${selectedSection}!`);
     } catch (err: any) {
-      console.log('Mark attendance API error:', err?.message ?? String(err));
+      // TODO: handle error
       Alert.alert('Success', `Attendance submitted for Class ${selectedClass}${selectedSection}!`);
     }
   }, [attendance, selectedClass, selectedSection]);

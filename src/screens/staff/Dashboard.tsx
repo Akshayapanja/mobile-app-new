@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
+// TODO: Remove when backend connected
 import { USERS } from '../../lib/mockData';
 import { teacherService } from '../../services';
 import { SkeletonCard } from '../../components/common';
@@ -52,10 +53,9 @@ export default function StaffDashboard() {
     try {
       const response = await teacherService.getDashboard();
       if ((response as any)?.data || response) {
-        console.log('Teacher dashboard loaded from API');
       }
     } catch (err: any) {
-      console.log('API not connected, using mock data:', err?.message ?? String(err));
+      // TODO: handle error
     } finally {
       setLoading(false);
     }

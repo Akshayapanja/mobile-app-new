@@ -191,10 +191,7 @@ export default function OTPVerify() {
       await AsyncStorage.setItem('intants_user', JSON.stringify(user));
       navigateByRole(user, phone);
     } catch (err: any) {
-      console.log(
-        'Backend not connected, using mock login:',
-        err?.message ?? String(err)
-      );
+      // TODO: handle error
       await handleMockLogin(phone, otpString);
     } finally {
       setLoading(false);
@@ -211,10 +208,7 @@ export default function OTPVerify() {
       if (!phone) return;
       await authService.sendOTP(phone);
     } catch (err: any) {
-      console.log(
-        'Backend not connected, using mock login:',
-        err?.message ?? String(err)
-      );
+      // TODO: handle error
     }
   };
 
