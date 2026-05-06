@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { teacherService } from '../../services';
+import { notificationService, teacherService } from '../../services';
 
 type NItem = {
   icon: string;
@@ -55,6 +55,11 @@ export default function StaffNotifications() {
     }
   };
 
+  const handleMarkAllRead = async () => {
+    setAllRead(true);
+    await notificationService.clearBadge();
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -63,7 +68,7 @@ export default function StaffNotifications() {
             <Ionicons name="arrow-back" size={22} color="#111827" />
           </TouchableOpacity>
           <Text style={styles.topNavTitle}>Notifications</Text>
-          <TouchableOpacity activeOpacity={0.85} onPress={() => setAllRead(true)}><Text style={styles.markRead}>Mark all read</Text></TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.85} onPress={handleMarkAllRead}><Text style={styles.markRead}>Mark all read</Text></TouchableOpacity>
         </View>
 
         <Text style={styles.section}>TODAY</Text>

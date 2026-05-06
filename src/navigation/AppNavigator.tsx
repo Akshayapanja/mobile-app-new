@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { NavigationContainer, type NavigationContainerRef, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -263,7 +263,7 @@ function DriverStack() {
 
 type UserRole = null | 'parent' | 'staff' | 'driver';
 
-export function AppNavigator() {
+export function AppNavigator({ navigationRef }: { navigationRef?: NavigationContainerRef<any> }) {
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
 
@@ -297,6 +297,7 @@ export function AppNavigator() {
 
   return (
     <NavigationContainer
+      ref={navigationRef as any}
       onStateChange={() => {
         // Re-check role after login/logout navigation inside AuthStack,
         // so we switch to Parent/Staff stacks and all route names resolve.
