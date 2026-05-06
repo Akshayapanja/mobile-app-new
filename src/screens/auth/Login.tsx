@@ -16,6 +16,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { authService } from '../../services';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { phoneSchema, type PhoneFormData } from '../../lib/validations';
 
 type Nav = {
   navigate: (screen: 'OTPVerify') => void;
@@ -23,17 +26,19 @@ type Nav = {
 
 export default function Login() {
   const navigation = useNavigation<Nav>();
-  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleSendOTP = async () => {
-    const p = phone.trim();
-    if (!p || p.length < 10) {
-      setError('Please enter valid 10 digit phone number');
-      return;
-    }
-    setError('');
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PhoneFormData>({
+    resolver: zodResolver(phoneSchema),
+    defaultValues: { phone: '' },
+  });
+
+  const onSubmit = async (data: PhoneFormData) => {
+    const p = data.phone.trim();
     setLoading(true);
     try {
       await authService.sendOTP(p);
@@ -79,25 +84,29 @@ export default function Login() {
                 <View style={styles.prefixBox}>
                   <Text style={styles.prefixText}>+91</Text>
                 </View>
-                <TextInput
-                  value={phone}
-                  onChangeText={t => setPhone(t.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="98XXXXXXXX"
-                  placeholderTextColor="#8A8A8A"
-                  keyboardType="number-pad"
-                  maxLength={10}
-                  style={styles.input}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSendOTP}
+                <Controller
+                  control={control}
+                  name="phone"
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      value={value}
+                      onChangeText={t => onChange(t.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="98XXXXXXXX"
+                      placeholderTextColor="#8A8A8A"
+                      keyboardType="numeric"
+                      maxLength={10}
+                      style={styles.input}
+                      returnKeyType="done"
+                      onSubmitEditing={handleSubmit(onSubmit)}
+                    />
+                  )}
                 />
               </View>
 
-              {error ? (
-                <Text style={{ color: '#E85D5D', fontSize: 12, marginTop: 4 }}>{error}</Text>
-              ) : null}
+              {errors.phone ? <Text style={styles.errorText}>{errors.phone.message}</Text> : null}
 
               <TouchableOpacity
-                onPress={handleSendOTP}
+                onPress={handleSubmit(onSubmit)}
                 disabled={loading}
                 activeOpacity={0.8}
                 style={[styles.primaryBtn, loading && styles.btnDisabled]}
@@ -199,6 +208,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
     color: '#1C1C1C',
+  },
+  errorText: {
+    color: '#E85D5D',
+    fontSize: 12,
+    marginTop: 4,
   },
   primaryBtn: {
     backgroundColor: '#4A90D9',

@@ -3,6 +3,9 @@ import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { staffLeaveSchema, type StaffLeaveFormData } from '../../lib/validations';
 
 function fmtDateLabel(d: Date) {
   const month = d.toLocaleString('en-US', { month: 'long' });
@@ -31,6 +34,21 @@ export default function StaffApplyLeave() {
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<StaffLeaveFormData>({
+    resolver: zodResolver(staffLeaveSchema),
+    defaultValues: {
+      leaveType: '',
+      fromDate: '',
+      toDate: '',
+      reason: '',
+    },
+  });
 
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
@@ -66,9 +84,11 @@ export default function StaffApplyLeave() {
     const chosen = new Date(pickerBase.getFullYear(), pickerBase.getMonth() + pickerMonthOffset, tempSelectedDay);
     if (showFromPicker) {
       setFromDate(chosen);
+      setValue('fromDate', chosen.toISOString().split('T')[0], { shouldValidate: true });
       if (chosen.getTime() > toDate.getTime()) setToDate(chosen);
     } else {
       setToDate(chosen);
+      setValue('toDate', chosen.toISOString().split('T')[0], { shouldValidate: true });
       if (chosen.getTime() < fromDate.getTime()) setFromDate(chosen);
     }
     closePicker();
@@ -76,15 +96,39 @@ export default function StaffApplyLeave() {
 
   const openLeaveTypePicker = () => {
     Alert.alert('Leave Type', 'Choose leave type', [
-      { text: 'Medical Leave', onPress: () => setLeaveType('Medical Leave') },
-      { text: 'Casual Leave', onPress: () => setLeaveType('Casual Leave') },
-      { text: 'Personal Leave', onPress: () => setLeaveType('Personal Leave') },
-      { text: 'Emergency Leave', onPress: () => setLeaveType('Emergency Leave') },
+      {
+        text: 'Medical Leave',
+        onPress: () => {
+          setLeaveType('Medical Leave');
+          setValue('leaveType', 'Medical Leave', { shouldValidate: true });
+        },
+      },
+      {
+        text: 'Casual Leave',
+        onPress: () => {
+          setLeaveType('Casual Leave');
+          setValue('leaveType', 'Casual Leave', { shouldValidate: true });
+        },
+      },
+      {
+        text: 'Personal Leave',
+        onPress: () => {
+          setLeaveType('Personal Leave');
+          setValue('leaveType', 'Personal Leave', { shouldValidate: true });
+        },
+      },
+      {
+        text: 'Emergency Leave',
+        onPress: () => {
+          setLeaveType('Emergency Leave');
+          setValue('leaveType', 'Emergency Leave', { shouldValidate: true });
+        },
+      },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
 
-  const submit = () => {
+  const onSubmit = async (_data: StaffLeaveFormData) => {
     if (submitting) return;
     setSubmitting(true);
     setTimeout(() => {
@@ -128,17 +172,66 @@ export default function StaffApplyLeave() {
           </View>
         ) : (
           <View style={styles.formWrap}>
-            <View style={styles.field}><Text style={styles.label}>Leave Type</Text><TouchableOpacity style={styles.dropdown} activeOpacity={0.9} onPress={openLeaveTypePicker}><Text style={styles.dropdownValue}>{leaveType}</Text><Ionicons name="chevron-down" size={18} color="#9CA3AF" /></TouchableOpacity></View>
+            <View style={styles.field}>
+              <Text style={styles.label}>Leave Type</Text>
+              <TouchableOpacity style={styles.dropdown} activeOpacity={0.9} onPress={openLeaveTypePicker}>
+                <Text style={styles.dropdownValue}>{leaveType}</Text>
+                <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+              {errors.leaveType ? <Text style={styles.errorText}>{errors.leaveType.message}</Text> : null}
+            </View>
 
-            <View style={styles.field}><Text style={styles.label}>From Date</Text><TouchableOpacity style={styles.dropdown} activeOpacity={0.9} onPress={() => openPicker('from')}><Text style={styles.dropdownValue}>{fmtDateLabel(fromDate)}</Text><Ionicons name="calendar-outline" size={18} color="#9CA3AF" /></TouchableOpacity></View>
+            <View style={styles.field}>
+              <Text style={styles.label}>From Date</Text>
+              <TouchableOpacity style={styles.dropdown} activeOpacity={0.9} onPress={() => openPicker('from')}>
+                <Text style={styles.dropdownValue}>{fmtDateLabel(fromDate)}</Text>
+                <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+              {errors.fromDate ? <Text style={styles.errorText}>{errors.fromDate.message}</Text> : null}
+            </View>
 
-            <View style={styles.field}><Text style={styles.label}>To Date</Text><TouchableOpacity style={styles.dropdown} activeOpacity={0.9} onPress={() => openPicker('to')}><Text style={styles.dropdownValue}>{fmtDateLabel(toDate)}</Text><Ionicons name="calendar-outline" size={18} color="#9CA3AF" /></TouchableOpacity></View>
+            <View style={styles.field}>
+              <Text style={styles.label}>To Date</Text>
+              <TouchableOpacity style={styles.dropdown} activeOpacity={0.9} onPress={() => openPicker('to')}>
+                <Text style={styles.dropdownValue}>{fmtDateLabel(toDate)}</Text>
+                <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+              {errors.toDate ? <Text style={styles.errorText}>{errors.toDate.message}</Text> : null}
+            </View>
 
             <View style={styles.durationRow}><Text style={styles.durationLabel}>Duration:</Text><View style={styles.durationPill}><Text style={styles.durationPillText}>{durationDays} days</Text></View></View>
 
-            <View style={styles.field}><Text style={styles.label}>Reason</Text><TextInput value={reason} onChangeText={setReason} placeholder="Reason for leave..." placeholderTextColor="#9CA3AF" multiline textAlignVertical="top" style={styles.reasonInput} /></View>
+            <View style={styles.field}>
+              <Text style={styles.label}>Reason</Text>
+              <Controller
+                control={control}
+                name="reason"
+                render={({ field: { onChange, value } }) => (
+                  <TextInput
+                    value={value}
+                    onChangeText={t => {
+                      setReason(t);
+                      onChange(t);
+                    }}
+                    placeholder="Reason for leave..."
+                    placeholderTextColor="#9CA3AF"
+                    multiline
+                    textAlignVertical="top"
+                    style={styles.reasonInput}
+                  />
+                )}
+              />
+              {errors.reason ? <Text style={styles.errorText}>{errors.reason.message}</Text> : null}
+            </View>
 
-            <TouchableOpacity style={[styles.submitBtn, submitting ? styles.submitBtnDisabled : null]} disabled={submitting} activeOpacity={0.9} onPress={submit}><Text style={styles.submitBtnText}>{submitting ? 'Submitting...' : 'Submit Leave Request'}</Text></TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.submitBtn, submitting ? styles.submitBtnDisabled : null]}
+              disabled={submitting}
+              activeOpacity={0.9}
+              onPress={handleSubmit(onSubmit)}
+            >
+              <Text style={styles.submitBtnText}>{submitting ? 'Submitting...' : 'Submit Leave Request'}</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -213,6 +306,7 @@ const styles = StyleSheet.create({
   submitBtn: { height: 52, borderRadius: 50, backgroundColor: '#4A90D9', alignItems: 'center', justifyContent: 'center' },
   submitBtnDisabled: { backgroundColor: '#D1D5DB' },
   submitBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  errorText: { color: '#E85D5D', fontSize: 12 },
 
   successCard: { backgroundColor: '#F0FDF4', borderWidth: 1, borderColor: '#5CB85C', borderRadius: 12, padding: 16, marginBottom: 14 },
   successTitle: { color: '#5CB85C', fontSize: 15, fontWeight: '900' },

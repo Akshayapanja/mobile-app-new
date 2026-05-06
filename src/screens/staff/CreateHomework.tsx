@@ -13,6 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { teacherService } from '../../services';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createHomeworkSchema, type CreateHomeworkFormData } from '../../lib/validations';
 
 function fmtDateLabel(d: Date) {
   const month = d.toLocaleString('en-US', { month: 'long' });
@@ -64,6 +67,22 @@ export default function CreateHomework() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<CreateHomeworkFormData>({
+    resolver: zodResolver(createHomeworkSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      subject: 'Mathematics',
+      dueDate: '',
+      maxMarks: '100',
+    },
+  });
+
   const [showDuePicker, setShowDuePicker] = useState(false);
   const [pickerMonthOffset, setPickerMonthOffset] = useState(0);
   const [tempSelectedDay, setTempSelectedDay] = useState<number | null>(null);
@@ -76,7 +95,8 @@ export default function CreateHomework() {
 
   useEffect(() => {
     setForm(f => ({ ...f, sec: CLASS_TO_SECTION[f.cls], subject: 'Mathematics' }));
-  }, [form.cls]);
+    setValue('subject', 'Mathematics');
+  }, [form.cls, setValue]);
 
   const openDuePicker = () => {
     setPickerMonthOffset(0);
@@ -94,6 +114,7 @@ export default function CreateHomework() {
     if (!day) return;
     const chosen = new Date(pickerBase.getFullYear(), pickerBase.getMonth() + pickerMonthOffset, day);
     setForm(f => ({ ...f, due: chosen }));
+    setValue('dueDate', chosen.toISOString().split('T')[0], { shouldValidate: true });
     closeDuePicker();
   };
 
@@ -108,18 +129,8 @@ export default function CreateHomework() {
     Alert.alert('Section', `Class ${form.cls} has only Section ${CLASS_TO_SECTION[form.cls]}`);
   };
 
-  const validate = () => {
-    const { cls, sec, subject, title, desc, due, maxMarks } = form;
-    if (!cls || !sec || !subject.trim() || !title.trim() || !desc.trim() || !due || !maxMarks.trim()) {
-      Alert.alert('Error', 'Please fill all required fields');
-      return false;
-    }
-    return true;
-  };
-
-  const submit = async () => {
+  const onSubmit = async (_data: CreateHomeworkFormData) => {
     if (submitting) return;
-    if (!validate()) return;
     setSubmitting(true);
     try {
       await teacherService.createHomework({
@@ -235,26 +246,46 @@ export default function CreateHomework() {
 
             <View style={styles.field}>
               <Text style={styles.label}>Title</Text>
-              <TextInput
-                value={form.title}
-                onChangeText={t => setForm(f => ({ ...f, title: t }))}
-                placeholder="Homework title"
-                placeholderTextColor="#9CA3AF"
-                style={styles.input}
+              <Controller
+                control={control}
+                name="title"
+                render={({ field: { onChange, value } }) => (
+                  <TextInput
+                    value={value}
+                    onChangeText={t => {
+                      setForm(f => ({ ...f, title: t }));
+                      onChange(t);
+                    }}
+                    placeholder="Homework title"
+                    placeholderTextColor="#9CA3AF"
+                    style={styles.input}
+                  />
+                )}
               />
+              {errors.title ? <Text style={styles.errorText}>{errors.title.message}</Text> : null}
             </View>
 
             <View style={styles.field}>
               <Text style={styles.label}>Description</Text>
-              <TextInput
-                value={form.desc}
-                onChangeText={t => setForm(f => ({ ...f, desc: t }))}
-                placeholder="Homework details..."
-                placeholderTextColor="#9CA3AF"
-                style={styles.textarea}
-                multiline
-                textAlignVertical="top"
+              <Controller
+                control={control}
+                name="description"
+                render={({ field: { onChange, value } }) => (
+                  <TextInput
+                    value={value}
+                    onChangeText={t => {
+                      setForm(f => ({ ...f, desc: t }));
+                      onChange(t);
+                    }}
+                    placeholder="Homework details..."
+                    placeholderTextColor="#9CA3AF"
+                    style={styles.textarea}
+                    multiline
+                    textAlignVertical="top"
+                  />
+                )}
               />
+              {errors.description ? <Text style={styles.errorText}>{errors.description.message}</Text> : null}
             </View>
 
             <View style={styles.field}>
@@ -263,23 +294,34 @@ export default function CreateHomework() {
                 <Text style={styles.dropdownValue}>{fmtDateLabel(form.due)}</Text>
                 <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
               </TouchableOpacity>
+              {errors.dueDate ? <Text style={styles.errorText}>{errors.dueDate.message}</Text> : null}
             </View>
 
             <View style={styles.field}>
               <Text style={styles.label}>Max Marks</Text>
-              <TextInput
-                value={form.maxMarks}
-                onChangeText={t => setForm(f => ({ ...f, maxMarks: t }))}
-                keyboardType="numeric"
-                style={styles.input}
+              <Controller
+                control={control}
+                name="maxMarks"
+                render={({ field: { onChange, value } }) => (
+                  <TextInput
+                    value={value}
+                    onChangeText={t => {
+                      setForm(f => ({ ...f, maxMarks: t }));
+                      onChange(t);
+                    }}
+                    keyboardType="numeric"
+                    style={styles.input}
+                  />
+                )}
               />
+              {errors.maxMarks ? <Text style={styles.errorText}>{errors.maxMarks.message}</Text> : null}
             </View>
 
             <TouchableOpacity
               activeOpacity={0.9}
               disabled={submitting}
               style={[styles.submitBtn, submitting ? styles.submitBtnDisabled : null]}
-              onPress={submit}
+              onPress={handleSubmit(onSubmit)}
             >
               <Text style={styles.submitText}>{submitting ? 'Creating...' : 'Create Homework'}</Text>
             </TouchableOpacity>
@@ -403,6 +445,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     fontWeight: '600',
   },
+  errorText: { color: '#E85D5D', fontSize: 12 },
 
   submitBtn: {
     marginTop: 8,

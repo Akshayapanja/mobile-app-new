@@ -5,6 +5,9 @@ import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { applyLeaveSchema, type ApplyLeaveFormData } from '../../lib/validations';
 
 function fmtDateLabel(d: Date) {
   const month = d.toLocaleString('en-US', { month: 'long' });
@@ -51,6 +54,21 @@ export default function ApplyLeave() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<ApplyLeaveFormData>({
+    resolver: zodResolver(applyLeaveSchema),
+    defaultValues: {
+      leaveType: '',
+      fromDate: '',
+      toDate: '',
+      reason: '',
+    },
+  });
+
   const durationDays = useMemo(() => {
     const start = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate()).getTime();
     const end = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate()).getTime();
@@ -85,9 +103,11 @@ export default function ApplyLeave() {
 
     if (showFromPicker) {
       setFromDate(chosen);
+      setValue('fromDate', chosen.toISOString().split('T')[0], { shouldValidate: true });
       if (chosen.getTime() > toDate.getTime()) setToDate(chosen);
     } else if (showToPicker) {
       setToDate(chosen);
+      setValue('toDate', chosen.toISOString().split('T')[0], { shouldValidate: true });
       if (chosen.getTime() < fromDate.getTime()) setFromDate(chosen);
     }
     closePicker();
@@ -95,21 +115,39 @@ export default function ApplyLeave() {
 
   function openLeaveTypePicker() {
     Alert.alert('Leave Type', 'Choose a leave type', [
-      { text: 'Medical Leave', onPress: () => setLeaveType('Medical Leave') },
-      { text: 'Casual Leave', onPress: () => setLeaveType('Casual Leave') },
-      { text: 'Emergency Leave', onPress: () => setLeaveType('Emergency Leave') },
+      {
+        text: 'Medical Leave',
+        onPress: () => {
+          setLeaveType('Medical Leave');
+          setValue('leaveType', 'Medical Leave', { shouldValidate: true });
+        },
+      },
+      {
+        text: 'Casual Leave',
+        onPress: () => {
+          setLeaveType('Casual Leave');
+          setValue('leaveType', 'Casual Leave', { shouldValidate: true });
+        },
+      },
+      {
+        text: 'Emergency Leave',
+        onPress: () => {
+          setLeaveType('Emergency Leave');
+          setValue('leaveType', 'Emergency Leave', { shouldValidate: true });
+        },
+      },
       { text: 'Cancel', style: 'cancel' },
     ]);
   }
 
-  function submit() {
+  const onSubmit = async (_data: ApplyLeaveFormData) => {
     if (submitting) return;
     setSubmitting(true);
     setTimeout(() => {
       setSubmitting(false);
       setSuccess(true);
     }, 1000);
-  }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -171,6 +209,7 @@ export default function ApplyLeave() {
                   <Text style={styles.dropdownValue}>{leaveType}</Text>
                   <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
                 </TouchableOpacity>
+                {errors.leaveType ? <Text style={styles.errorText}>{errors.leaveType.message}</Text> : null}
               </View>
 
               <View style={styles.field}>
@@ -183,6 +222,7 @@ export default function ApplyLeave() {
                   <Text style={styles.dropdownValue}>{fmtDateLabel(fromDate)}</Text>
                   <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
                 </TouchableOpacity>
+                {errors.fromDate ? <Text style={styles.errorText}>{errors.fromDate.message}</Text> : null}
               </View>
 
               <View style={styles.field}>
@@ -195,6 +235,7 @@ export default function ApplyLeave() {
                   <Text style={styles.dropdownValue}>{fmtDateLabel(toDate)}</Text>
                   <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
                 </TouchableOpacity>
+                {errors.toDate ? <Text style={styles.errorText}>{errors.toDate.message}</Text> : null}
               </View>
 
               <View style={styles.durationRow}>
@@ -206,13 +247,23 @@ export default function ApplyLeave() {
 
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>Reason</Text>
-                <TextInput
-                  value={reason}
-                  onChangeText={setReason}
-                  style={styles.reasonInput}
-                  multiline
-                  textAlignVertical="top"
+                <Controller
+                  control={control}
+                  name="reason"
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      value={value}
+                      onChangeText={t => {
+                        setReason(t);
+                        onChange(t);
+                      }}
+                      style={styles.reasonInput}
+                      multiline
+                      textAlignVertical="top"
+                    />
+                  )}
                 />
+                {errors.reason ? <Text style={styles.errorText}>{errors.reason.message}</Text> : null}
               </View>
 
               <View style={styles.field}>
@@ -242,7 +293,7 @@ export default function ApplyLeave() {
               activeOpacity={0.9}
               disabled={submitting}
               style={[styles.submitBtn, submitting ? styles.submitBtnDisabled : null]}
-              onPress={submit}
+              onPress={handleSubmit(onSubmit)}
             >
               <Text style={styles.submitText}>{submitting ? 'Submitting...' : 'Submit Leave Request'}</Text>
             </TouchableOpacity>
@@ -374,6 +425,7 @@ const styles = StyleSheet.create({
   submitBtn: { width: '100%', height: 52, borderRadius: 26, backgroundColor: '#4A90D9', alignItems: 'center', justifyContent: 'center' },
   submitBtnDisabled: { backgroundColor: '#D1D5DB' },
   submitText: { color: '#FFFFFF', fontSize: 14, fontWeight: '900' },
+  errorText: { color: '#E85D5D', fontSize: 12 },
 
   successCard: { backgroundColor: '#F0FDF4', borderWidth: 1, borderColor: '#5CB85C', borderRadius: 12, padding: 16 },
   successTitle: { fontSize: 15, fontWeight: '900', color: '#5CB85C', marginBottom: 10 },

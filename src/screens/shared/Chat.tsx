@@ -13,6 +13,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
 import { parentService } from '../../services';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { messageSchema, type MessageFormData } from '../../lib/validations';
 
 type Role = 'parent' | 'staff';
 
@@ -99,7 +102,15 @@ export default function Chat() {
   const initial = useMemo(() => (MOCK_THREADS[threadKey] ? [...MOCK_THREADS[threadKey]] : []), [threadKey]);
 
   const [msgs, setMsgs] = useState<ChatMsg[]>(initial);
-  const [text, setText] = useState('');
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<MessageFormData>({
+    resolver: zodResolver(messageSchema),
+    defaultValues: { content: '' },
+  });
 
   useEffect(() => setMsgs(initial), [initial]);
 
@@ -124,10 +135,9 @@ export default function Chat() {
     return () => clearTimeout(t);
   }, [msgs.length]);
 
-  const send = async () => {
-    const t = text.trim();
-    if (!t) return;
-    setText('');
+  const onSubmit = async (data: MessageFormData) => {
+    const t = data.content.trim();
+    reset();
 
     try {
       await parentService.sendMessage(chatId, t);
@@ -182,15 +192,24 @@ export default function Chat() {
         </ScrollView>
 
         <View style={styles.inputBar}>
-          <TextInput
-            value={text}
-            onChangeText={setText}
-            placeholder="Type a message..."
-            placeholderTextColor="#9CA3AF"
-            style={styles.input}
-            multiline
-          />
-          <TouchableOpacity onPress={send} style={styles.sendBtn} activeOpacity={0.9}>
+          <View style={{ flex: 1 }}>
+            <Controller
+              control={control}
+              name="content"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder="Type a message..."
+                  placeholderTextColor="#9CA3AF"
+                  style={styles.input}
+                  multiline
+                />
+              )}
+            />
+            {errors.content ? <Text style={styles.errorText}>{errors.content.message}</Text> : null}
+          </View>
+          <TouchableOpacity onPress={handleSubmit(onSubmit)} style={styles.sendBtn} activeOpacity={0.9}>
             <Text style={styles.sendIcon}>→</Text>
           </TouchableOpacity>
         </View>
@@ -233,5 +252,6 @@ const styles = StyleSheet.create({
   input: { flex: 1, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: '#111827', maxHeight: 110 },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#4A90D9', alignItems: 'center', justifyContent: 'center' },
   sendIcon: { color: '#FFFFFF', fontSize: 18, fontWeight: '800' },
+  errorText: { color: '#E85D5D', fontSize: 12, marginTop: 4, marginLeft: 8 },
 });
 
