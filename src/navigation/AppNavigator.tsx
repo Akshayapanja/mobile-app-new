@@ -198,6 +198,7 @@ function StaffStack() {
       <Stack.Screen name="StaffBroadcast" component={StaffBroadcastScreen} />
       <Stack.Screen name="StaffChat" component={ChatScreen} />
       <Stack.Screen name="StaffAnnouncements" component={AnnouncementsScreen} />
+      <Stack.Screen name="StaffMarkAttendance" component={StaffMarkAttendanceScreen} />
       <Stack.Screen name="StaffAttendance" component={ComingSoon} />
       <Stack.Screen name="StaffHomework" component={StaffHomeworkScreen} />
       <Stack.Screen name="StaffCalendar" component={StaffCalendarScreen} />

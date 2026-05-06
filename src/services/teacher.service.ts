@@ -126,14 +126,12 @@ export const teacherService = {
   },
 
   getLeaves: async () => {
-    // `all_api.md` lists this as the teacher leave history endpoint.
-    const response = await api.get('/api/v1/leaves/history');
+    const response = await api.get('/api/v1/leaves/applications');
     return response.data;
   },
 
   getPayslips: async () => {
-    // `all_api.md` lists payroll routes mostly as web-only; the only list-like route is `/api/v1/payroll/list`.
-    const response = await api.get('/api/v1/payroll/list');
+    const response = await api.get('/api/v1/payroll/payslips');
     return response.data;
   },
 
