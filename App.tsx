@@ -3,7 +3,6 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useNavigationContainerRef } from '@react-navigation/native';
 import {
   useFonts,
   Inter_400Regular,
@@ -14,7 +13,6 @@ import {
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore, useSchoolStore } from './src/stores';
 import { OfflineBanner } from './src/components/common';
-import { notificationService, useNotificationListeners } from './src/services/notification.service';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,7 +30,6 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
-  const navigationRef = useNavigationContainerRef<any>();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -48,20 +45,6 @@ export default function App() {
     loadSchool();
   }, [loadFromStorage, loadSchool]);
 
-  useEffect(() => {
-    notificationService.registerForPushNotifications();
-  }, []);
-
-  useEffect(() => {
-    const cleanup = useNotificationListeners(data => {
-      console.log('Notification received:', data);
-      if (data?.screen && navigationRef.isReady()) {
-        navigationRef.navigate(data.screen as never);
-      }
-    });
-    return cleanup;
-  }, [navigationRef]);
-
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -75,7 +58,7 @@ export default function App() {
       <SafeAreaProvider>
         <OfflineBanner />
         <StatusBar style="auto" />
-        <AppNavigator navigationRef={navigationRef} />
+        <AppNavigator />
       </SafeAreaProvider>
     </QueryClientProvider>
   );
