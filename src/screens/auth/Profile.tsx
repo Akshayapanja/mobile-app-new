@@ -146,10 +146,7 @@ export default function Profile() {
           try {
             await authService.logout();
           } catch (err: any) {
-            console.log(
-              'Backend not connected, using mock login:',
-              err?.message ?? String(err)
-            );
+            console.log('Logout API not connected:', err?.message ?? String(err));
           } finally {
             rootNav.dispatch(
               CommonActions.reset({

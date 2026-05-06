@@ -45,7 +45,7 @@ export const authService = {
       await api.post('/api/v1/auth/logout');
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Logout API error:', error);
+      console.log('Logout API not connected:', (error as any)?.message ?? String(error));
     } finally {
       await AsyncStorage.multiRemove([
         'intants_token',
