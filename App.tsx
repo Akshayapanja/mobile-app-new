@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   useFonts,
   Inter_400Regular,
@@ -10,8 +11,23 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { View, ActivityIndicator } from 'react-native';
-import { useAuthStore } from './src/stores/authStore';
+import { useAuthStore, useSchoolStore } from './src/stores';
 import { OfflineBanner } from './src/components/common';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 0,
+    },
+  },
+});
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -22,10 +38,12 @@ export default function App() {
   });
 
   const loadFromStorage = useAuthStore(state => state.loadFromStorage);
+  const loadSchool = useSchoolStore(state => state.loadFromStorage);
 
   useEffect(() => {
     loadFromStorage();
-  }, [loadFromStorage]);
+    loadSchool();
+  }, [loadFromStorage, loadSchool]);
 
   if (!fontsLoaded) {
     return (
@@ -36,12 +54,12 @@ export default function App() {
   }
 
   return (
-    <>
-      <OfflineBanner />
+    <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
+        <OfflineBanner />
         <StatusBar style="auto" />
         <AppNavigator />
       </SafeAreaProvider>
-    </>
+    </QueryClientProvider>
   );
 }
