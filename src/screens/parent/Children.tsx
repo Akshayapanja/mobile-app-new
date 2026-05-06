@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
 import { type Child } from '../../lib/mockData';
 import { parentService } from '../../services';
+import { SkeletonCard } from '../../components/common';
 
 type ChildCard = Child & { navChildId: string };
 
@@ -110,6 +111,19 @@ export default function Children() {
   }, [kids.length]);
 
   const notificationBadgeVisible = true;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <View style={{ padding: 16 }}>
+          <SkeletonCard height={120} />
+          <SkeletonCard height={80} />
+          <SkeletonCard height={80} />
+          <SkeletonCard height={80} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>

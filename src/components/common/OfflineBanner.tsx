@@ -1,0 +1,38 @@
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
+
+export const OfflineBanner = () => {
+  const [isOffline, setIsOffline] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsOffline(!state.isConnected);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (!isOffline) return null;
+
+  return (
+    <View style={styles.banner}>
+      <Text style={styles.text}>📡 No internet connection</Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  banner: {
+    backgroundColor: '#E85D5D',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  text: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+});
+
+export default OfflineBanner;

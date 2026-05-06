@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { driverService } from '../../services';
+import { SkeletonCard } from '../../components/common';
 
 type Nav = {
   navigate: (
@@ -19,6 +20,7 @@ type Nav = {
 
 export default function DriverDashboardScreen() {
   const navigation = useNavigation<Nav>();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboard();
@@ -30,6 +32,8 @@ export default function DriverDashboardScreen() {
       console.log('Driver dashboard loaded from API');
     } catch (err: any) {
       console.log('API not connected, using mock data:', err?.message ?? String(err));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,6 +84,19 @@ export default function DriverDashboardScreen() {
     ],
     [navigation]
   );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <View style={{ padding: 16 }}>
+          <SkeletonCard height={120} />
+          <SkeletonCard height={80} />
+          <SkeletonCard height={80} />
+          <SkeletonCard height={80} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

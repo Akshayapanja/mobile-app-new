@@ -11,6 +11,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from './src/stores/authStore';
+import { OfflineBanner } from './src/components/common';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -35,9 +36,12 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <AppNavigator />
-    </SafeAreaProvider>
+    <>
+      <OfflineBanner />
+      <SafeAreaProvider>
+        <StatusBar style="auto" />
+        <AppNavigator />
+      </SafeAreaProvider>
+    </>
   );
 }

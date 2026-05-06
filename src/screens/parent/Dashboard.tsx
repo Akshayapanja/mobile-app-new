@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
 import { CHILDREN, USERS } from '../../lib/mockData';
 import { parentService } from '../../services';
+import { SkeletonCard } from '../../components/common';
 
 type Nav = {
   navigate: (
@@ -131,6 +132,19 @@ export default function ParentDashboard() {
   );
 
   const kidsLayout = children.length === 2 ? 'two' : 'one';
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <View style={{ padding: 16 }}>
+          <SkeletonCard height={120} />
+          <SkeletonCard height={80} />
+          <SkeletonCard height={80} />
+          <SkeletonCard height={80} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

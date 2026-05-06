@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../../lib/session';
 import { USERS } from '../../lib/mockData';
 import { teacherService } from '../../services';
+import { SkeletonCard } from '../../components/common';
 
 type Nav = {
   navigate: (
@@ -41,6 +42,7 @@ const ICONS = {
 
 export default function StaffDashboard() {
   const navigation = useNavigation<Nav>();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboard();
@@ -54,6 +56,8 @@ export default function StaffDashboard() {
       }
     } catch (err: any) {
       console.log('API not connected, using mock data:', err?.message ?? String(err));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -152,6 +156,19 @@ export default function StaffDashboard() {
     const dd = d.getDate();
     return `${day}, ${mon} ${dd}`;
   }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <View style={{ padding: 16 }}>
+          <SkeletonCard height={120} />
+          <SkeletonCard height={80} />
+          <SkeletonCard height={80} />
+          <SkeletonCard height={80} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
