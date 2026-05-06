@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { notificationService, parentService } from '../../services';
+import { parentService } from '../../services';
 
 type NotificationItem = {
   id: string;
@@ -127,11 +127,10 @@ export default function Notifications() {
     [today, yesterday, earlier]
   );
 
-  const markAllRead = async () => {
+  const markAllRead = () => {
     setToday(prev => prev.map(n => ({ ...n, unread: false })));
     setYesterday(prev => prev.map(n => ({ ...n, unread: false })));
     setEarlier(prev => prev.map(n => ({ ...n, unread: false })));
-    await notificationService.clearBadge();
   };
 
   function renderItem(n: NotificationItem, isLast: boolean) {

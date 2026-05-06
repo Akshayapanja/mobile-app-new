@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { notificationService, teacherService } from '../../services';
+import { teacherService } from '../../services';
 
 type NItem = {
   icon: string;
@@ -55,10 +55,7 @@ export default function StaffNotifications() {
     }
   };
 
-  const handleMarkAllRead = async () => {
-    setAllRead(true);
-    await notificationService.clearBadge();
-  };
+  const handleMarkAllRead = () => setAllRead(true);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>

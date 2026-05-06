@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { driverService, notificationService } from '../../services';
+import { driverService } from '../../services';
 
 type Nav = { goBack: () => void };
 
@@ -79,9 +79,8 @@ export default function DriverNotificationsScreen() {
 
   const [items, setItems] = useState<Notice[]>(initial);
 
-  const markAllRead = async () => {
+  const markAllRead = () => {
     setItems(prev => prev.map(n => ({ ...n, unread: false })));
-    await notificationService.clearBadge();
   };
 
   useEffect(() => {
